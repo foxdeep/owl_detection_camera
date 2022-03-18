@@ -1,15 +1,43 @@
-# owl_detection_camera
+# OWL Face and QRcode Detection Camera lib for Flutter.
 
-A new Flutter project.
+A Flutter plugin for IOS and Android allowing access to the device cameras for detecting face and QRcode automatically.
 
-## Getting Started
+Android:
 
-This project is a starting point for a Flutter
-[plug-in package](https://flutter.dev/developing-packages/),
-a specialized package that includes platform-specific implementation code for
-Android and/or iOS.
+![image](https://github.com/foxdeep/owl_detection_camera/blob/release/screenshot/android.GIF)
 
-For help getting started with Flutter, view our
-[online documentation](https://flutter.dev/docs), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+IOS:
 
+![image](https://github.com/foxdeep/owl_detection_camera/blob/release/screenshot/IOS.GIF)
+
+## Features
+
+* Display live camera preview in a widget.
+* Capture face photo.
+* QRCode content result.
+* Adjust screen brightness.
+
+## Installation
+      dependencies:
+         library_name:
+           git: https://github.com/foxdeep/detection_camera
+### iOS
+
+The owl_camera_plugin functionality works on iOS 13.0 or higher. If compiling for any version lower than 13.0, make sure to programmatically check the version of iOS running on the device before using any owl_camera plugin features. The permission_handler plugin, for example, can be used to check permission.
+
+Add three rows to the `ios/Runner/Info.plist`:
+
+* Privacy - Camera Usage Description..
+* Privacy - Photo Library Additions Usage Description.
+* Privacy - Photo Library Usage Description
+
+### Android
+
+Change the minimum Android sdk version to 23 (or higher) in your android/app/build.gradle file.
+
+minSdkVersion 22
+
+
+### Usage
+
+Look example.
