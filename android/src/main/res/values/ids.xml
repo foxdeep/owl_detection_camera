@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <item type="id" name="face_bitmap_down"/>
+    <item type="id" name="get_face_rect"/>
+    <item type="id" name="countdown_finish"/>
+    <item type="id" name="start_capture"/>
+    <item type="id" name="start_detect_face"/>
+    <item type="id" name="rebuild_fail"/>
+    <item type="id" name="download_new_version"/>
+    <item type="id" name="show_face_hint"/>
+
+</resources>

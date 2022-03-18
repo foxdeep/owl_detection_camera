@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="camera_error">Camera error</string>
+    <string name="Com_yes">Yes</string>
+    <string name="Com_no">No</string>
+    <string name="Com_work">上班</string>
+    <string name="Com_day_off">下班</string>
+    <string name="Com_meeting">會議</string>
+    <string name="Com_meeting_dialog_title">點選會議</string>
+    <string name="Com_sign_in">簽到</string>
+    <string name="Com_sign_out">簽退</string>
+    <string name="Com_clock_in">考勤</string>
+    <string name="Com_hint_password">密碼</string>
+    <string name="Com_hint_email">電子郵件</string>
+    <string name="Com_hint_member_id">工號</string>
+    <string name="Com_confirm">確認</string>
+    <string name="Com_rebuild">補建</string>
+    <string name="Com_reset">重設</string>
+    <string name="Com_hint_member_birthday">生日</string>
+    <string name="Com_hint_member_birthday_year">西元</string>
+    <string name="Com_hint_member_birthday_month">月</string>
+    <string name="Com_hint_member_birthday_day">日</string>
+    <string name="Com_cancels">取消</string>
+    <string name="Com_clockin">打卡</string>
+    <string name="Com_success">成功</string>
+    <string name="Com_fail">失敗</string>
+    <string name="Com_recognize">辨識</string>
+    <string name="Com_retry">重新操作</string>
+    <string name="Com_setting">設定</string>
+    <string name="Com_meeting_start_not_yet">會議尚未開始</string>
+    <string name="Com_meeting_down">會議已結束</string>
+    <string name="Com_please_input_server_address">請輸入IP位址</string>
+    <string name="Com_please_input_info">請輸入資料</string>
+    <string name="Com_no_available_camera">沒有可用的相機</string>
+    <string name="Com_camera_no_support_feature">相機不支援新特性</string>
+    <string name="Com_camera_no_support_face_detect">相機不支援人臉偵測</string>
+    <string name="Com_open_camera_fail">啟動相機失敗</string>
+    <string name="Com_open_camera_session_fail">開啟預覽失敗</string>
+    <string name="Com_stranger">陌生人</string>
+    <string name="Com_no_data">未建檔</string>
+    <string name="Com_error">錯誤</string>
+    <string name="Com_re_capture">重拍</string>
+
+    <string name="Com_hint_server_ip">Server IP</string>
+    <string name="Com_hint_server_port">Port</string>
+
+    <string name="Com_hint_buddy_id">Buddy Id</string>
+    <string name="Com_hint_team_id">Team Id</string>
+
+    <string name="Com_login">登入</string>
+    <string name="Com_connect_error">無法連接網路</string>
+    <string name="Com_enter_account_or_password">帳號或密碼錯誤</string>
+    <string name="Com_no_network">無法連接網路</string>
+    <string name="Com_log_report">問題已回報</string>
+    <string name="Com_unbind_device">已解除綁定裝置，請重新綁定</string>
+
+    <string name="Com_rebuild_failed_member_not_exist">補建錯誤: 工號不存在</string>
+
+    <string name="Com_downloading">下載中...</string>
+    <string name="Com_download">簽到好簡單</string>
+    <string name="Com_notification_download_finish">下載完成，請點擊更新</string>
+    <string name="Com_notify_bar_download_text">正在下載「簽到好簡單」...</string>
+    <string name="Com_download_failed">下載失敗，請稍候嘗試</string>
+
+    <string name="Com_notification_new_version">發現新版本，請點擊更新</string>
+
+    <string name="default_notification_channel_id" translatable="false">fcm_owlfaceidss_default_channel</string>
+    <string name="default_notification_download_channel_id" translatable="false">fcm_owlfaceidss_download_channel</string>
+
+    <string name="provider_google" translatable="false">com.foxconn_strc.owlfaceidclockin.googleplayprovider</string>
+
+    <string name="Com_permissions_write_external_reason" translatable="false">為確保功能正常運作，請授予應用程式寫入外部檔案的權限</string>
+    <string name="Com_permissions_read_external_reason" translatable="false">為確保功能正常運作，請授予應用程式讀取外部檔案的權限</string>
+    <string name="Com_permissions_camera_reason" translatable="false">為確保功能正常運作，請授予應用程式相機的權限</string>
+    <string name="Com_permissions_internet_reason" translatable="false"> 為了確保網路功能，請受與應用程式網路的權限</string>
+
+
+    <string name="Com_permissions_manual_write_external" translatable="false">請到設定中，手動開啟寫入外部檔案的使用權限</string>
+    <string name="Com_permissions_manual_read_external" translatable="false">請到設定中，手動開啟讀取外部檔案的使用權限</string>
+    <string name="Com_permissions_manual_camera" translatable="false">請到設定中，手動開啟相機的使用權限</string>
+    <string name="Com_permissions_manual_internet" translatable="false">請到設定中，手動開啟網路的權限</string>
+
+    <string name="Com_cancel">取消</string>
+
+</resources>

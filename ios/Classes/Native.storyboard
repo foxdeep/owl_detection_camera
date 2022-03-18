@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="17701" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES">
+    <device id="retina6_1" orientation="portrait" appearance="light"/>
+    <dependencies>
+        <deployment identifier="iOS"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="17703"/>
+        <capability name="Safe area layout guides" minToolsVersion="9.0"/>
+        <capability name="System colors in document resources" minToolsVersion="11.0"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
+    </dependencies>
+    <scenes>
+        <!--CameraCV-->
+        <scene sceneID="bws-Mw-jWp">
+            <objects>
+                <viewController storyboardIdentifier="CameraStoryboard" id="dXG-vs-gGo" customClass="CameraCV" customModule="flutter_owl_camera_plugin" customModuleProvider="target" sceneMemberID="viewController">
+                    <view key="view" contentMode="scaleToFill" id="EPZ-MW-fkB">
+                        <rect key="frame" x="0.0" y="0.0" width="414" height="896"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <view contentMode="scaleToFill" insetsLayoutMarginsFromSafeArea="NO" translatesAutoresizingMaskIntoConstraints="NO" id="9et-5z-YMH">
+                                <rect key="frame" x="0.0" y="0.0" width="414" height="896"/>
+                                <subviews>
+                                    <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" insetsLayoutMarginsFromSafeArea="NO" translatesAutoresizingMaskIntoConstraints="NO" id="ihK-XN-Ncb">
+                                        <rect key="frame" x="0.0" y="0.0" width="414" height="896"/>
+                                    </imageView>
+                                </subviews>
+                                <color key="backgroundColor" systemColor="systemBackgroundColor"/>
+                                <constraints>
+                                    <constraint firstAttribute="bottom" secondItem="ihK-XN-Ncb" secondAttribute="bottom" id="P20-ib-yYu"/>
+                                    <constraint firstItem="ihK-XN-Ncb" firstAttribute="leading" secondItem="9et-5z-YMH" secondAttribute="leading" id="SC3-aL-2Dx"/>
+                                    <constraint firstItem="ihK-XN-Ncb" firstAttribute="top" secondItem="9et-5z-YMH" secondAttribute="top" id="VoQ-uq-zzO"/>
+                                    <constraint firstAttribute="trailing" secondItem="ihK-XN-Ncb" secondAttribute="trailing" id="zio-ui-9Hf"/>
+                                </constraints>
+                            </view>
+                        </subviews>
+                        <viewLayoutGuide key="safeArea" id="E4P-Ti-UmG"/>
+                        <color key="backgroundColor" systemColor="systemBackgroundColor"/>
+                        <constraints>
+                            <constraint firstItem="9et-5z-YMH" firstAttribute="top" secondItem="EPZ-MW-fkB" secondAttribute="top" id="1d1-SV-as2"/>
+                            <constraint firstItem="9et-5z-YMH" firstAttribute="leading" secondItem="E4P-Ti-UmG" secondAttribute="leading" id="Kkw-KA-gnU"/>
+                            <constraint firstItem="9et-5z-YMH" firstAttribute="top" secondItem="EPZ-MW-fkB" secondAttribute="top" id="PS6-Ak-09M"/>
+                            <constraint firstItem="9et-5z-YMH" firstAttribute="leading" secondItem="E4P-Ti-UmG" secondAttribute="leading" id="Rfn-A0-Ire"/>
+                            <constraint firstAttribute="bottom" secondItem="9et-5z-YMH" secondAttribute="bottom" id="UEC-Wf-dO8"/>
+                            <constraint firstItem="9et-5z-YMH" firstAttribute="trailing" secondItem="E4P-Ti-UmG" secondAttribute="trailing" id="eij-yD-CXd"/>
+                        </constraints>
+                    </view>
+                    <connections>
+                        <outlet property="captureCameraPreview" destination="9et-5z-YMH" id="rJq-pk-p8J"/>
+                        <outlet property="mFaceResultIV" destination="ihK-XN-Ncb" id="LHj-TC-9go"/>
+                    </connections>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="SX3-Qs-4wF" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="-252.17391304347828" y="-14.0625"/>
+        </scene>
+    </scenes>
+    <resources>
+        <systemColor name="systemBackgroundColor">
+            <color white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+        </systemColor>
+    </resources>
+</document>

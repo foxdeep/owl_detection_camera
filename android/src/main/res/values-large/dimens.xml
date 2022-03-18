@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="mode_frame_length">170dp</dimen>
+
+    <dimen name="textview_mode_title">20dp</dimen>
+    <dimen name="textview_time">40dp</dimen>
+    <dimen name="textview_title">36dp</dimen>
+    <dimen name="textview_buddy_meet_name">20dp</dimen>
+
+    <dimen name="textview_mode_title_padding_top_bottom">10dp</dimen>
+    <dimen name="textview_mode_title_padding_left_right">60dp</dimen>
+
+    <dimen name="result_dialog_out_textview_title">40dp</dimen>
+    <dimen name="result_dialog_out_textview_clock_time">32dp</dimen>
+
+    <dimen name="result_dialog_out_linearlayout_width">345dp</dimen>
+    <dimen name="result_dialog_out_linearlayout_height">485dp</dimen>
+
+    <dimen name="result_dialog_in_linearlayout_width">296dp</dimen>
+    <dimen name="result_dialog_in_linearlayout_height">324dp</dimen>
+
+    <dimen name="rebuild_capture_result_dialog_out_linearlayout_width">385dp</dimen>
+    <dimen name="rebuild_capture_result_dialog_out_linearlayout_height">525dp</dimen>
+
+    <dimen name="rebuild_capture_result_dialog_in_linearlayout_width">336dp</dimen>
+    <dimen name="rebuild_capture_result_dialog_in_linearlayout_height">364dp</dimen>
+
+    <dimen name="result_dialog_in_textview_member_id">18dp</dimen>
+    <dimen name="result_dialog_in_textview_member_name">18dp</dimen>
+
+    <dimen name="meeting_list_dialog_out_textview_title">40dp</dimen>
+
+    <dimen name="meeting_list_dialog_out_linearlayout_width">370dp</dimen>
+    <dimen name="meeting_list_dialog_out_linearlayout_height">610dp</dimen>
+
+    <dimen name="meeting_list_dialog_in_linearlayout_width">326dp</dimen>
+    <dimen name="meeting_list_dialog_in_linearlayout_height">430dp</dimen>
+
+    <dimen name="rebuild_face_start_gap">10dp</dimen>
+    <dimen name="rebuild_face_end_gap">110dp</dimen>
+
+    <dimen name="face_detection_hint_textview">29dp</dimen>
+
+</resources>

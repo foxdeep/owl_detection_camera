@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <color name="colorPrimary">#6200EE</color>
+    <color name="colorPrimaryDark">#3700B3</color>
+    <color name="colorAccent">#03DAC5</color>
+
+    <color name="color_primary_blue">#03DAC5</color>
+
+    <color name="color_mode">#80666666</color>
+    <color name="color_mode_select">#E26D58</color>
+
+    <color name="dark_transparent">#c0000000</color>
+
+    <color name="mode_clock_in">#804DC358</color>
+    <color name="mode_meeting">#80E3CF22</color>
+
+    <color name="clearable_edittext_hint_color">#858c9c</color>
+    <color name="user_info">#494949</color>
+    <color name="highlight">#33293665</color>
+    <color name="hint">#858585</color>
+    <color name="white">#ffffff</color>
+    <color name="login_button_press">#293665</color>
+    <color name="login_button_release">#444e72</color>
+    <color name="progress_bar_start_color">#80A8B0FF</color>
+    <color name="progress_bar_end_color">#FF3F51B5</color>
+
+    <color name="black">#ff000000</color>
+    <color name="red">#ffff0000</color>
+    <color name="gray">#ffc0c0c0</color>
+    <color name="rebuild_bg">#7D8E8E8E</color>
+
+    <color name="face_hint_background">#80562ACF</color>
+
+    <color name="face_detection_frame">#562ACF</color>
+
+</resources>
