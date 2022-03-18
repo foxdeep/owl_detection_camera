@@ -20,7 +20,7 @@ IOS:
 ## Installation
       dependencies:
          library_name:
-           git: https://github.com/foxdeep/detection_camera
+           git: https://github.com/foxdeep/owl_detection_camera/tree/release
 ### iOS
 
 The owl_camera_plugin functionality works on iOS 13.0 or higher. If compiling for any version lower than 13.0, make sure to programmatically check the version of iOS running on the device before using any owl_camera plugin features. The permission_handler plugin, for example, can be used to check permission.
