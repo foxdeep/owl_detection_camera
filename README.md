@@ -8,7 +8,7 @@ Android:
 
 IOS:
 
-![image](https://github.com/foxdeep/owl_detection_camera/blob/release/screenshot/IOS.GIF)
+![image](https://github.com/foxdeep/owl_detection_camera/blob/release/screenshot/ios.GIF)
 
 ## Features
 
