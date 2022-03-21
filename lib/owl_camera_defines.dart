@@ -1,7 +1,6 @@
 
 class OwlCameraDefine
 {
-
   static const int SCREEN_BRIGHT = 0;
   static const int SCREEN_DARK = 1;
 

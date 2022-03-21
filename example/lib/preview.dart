@@ -32,7 +32,6 @@ class _PreviewState  extends State<Preview>
 
     OwlDetectionCamera.onImageCallbacks = (name,path)
     {
-      print("image name: $name path: $path");
       if(!mIsDetectSuccess)
       {
         mImagePath = path;
@@ -55,8 +54,6 @@ class _PreviewState  extends State<Preview>
         mIsQRcode = true;
         setState(() {});
       }
-
-      print("QRcode text:$aValue");
     };
 
     OwlDetectionCamera.onOnWriteSettingPermissionCallback = (bool aValue)
@@ -75,7 +72,6 @@ class _PreviewState  extends State<Preview>
     }
 
     Permission temp = mPermission.removeLast();
-    print("checkPermission() name: ${temp.toString()}");
 
     if(await temp.request().isGranted)
     {
@@ -132,15 +128,11 @@ class _PreviewState  extends State<Preview>
 
   void updateView() async
   {
-    print("updateView");
-
     await Future.delayed(Duration(milliseconds: 2000), ()
     {
       setState(() {
         mIsDetectSuccess = false;
         mIsQRcode= false;
-        print("startFaceDetection");
-
         OwlDetectionCamera.startFaceDetection();
       });
     });
@@ -152,7 +144,7 @@ class _PreviewState  extends State<Preview>
     var faceFrameHeight = faceFrameWidth * 1.25;
     var pendingWidth = size.width - faceFrameWidth;
     var pendingHeight = size.height - faceFrameHeight;
-    print("ratio: $ratio");
+
     if(Theme.of(context).platform == TargetPlatform.android)
     {
       OwlDetectionCamera.passFaceFrameSize((faceFrameWidth.toInt()*ratio).toInt(),(faceFrameHeight.toInt()*ratio).toInt());
@@ -208,7 +200,6 @@ class _PreviewState  extends State<Preview>
                       onPressed: (){
                         OwlDetectionCamera.screenBright(mIsBrightness?OwlCameraDefine.SCREEN_DARK:OwlCameraDefine.SCREEN_BRIGHT);
                         mIsBrightness = !mIsBrightness;
-                        print("Brightness: $mIsBrightness");
                       }),
                 ],
               ),

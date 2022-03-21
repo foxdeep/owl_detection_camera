@@ -1,6 +1,3 @@
-
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -90,7 +87,6 @@ class _OwlCameraView extends State<OwlDetectionCamera>
       }
       else if(call.method == OwlCameraDefine.INVOKE_ID_FACE_RECTANGLE)
       {
-        //runtimeType List<Object?>
         var rectange = call.arguments["face_rectangle"];
 
         Rect faceRect = Rect.fromLTRB(rectange[0], rectange[1], rectange[2], rectange[3]);
@@ -107,15 +103,11 @@ class _OwlCameraView extends State<OwlDetectionCamera>
         OwlDetectionCamera.onOnWriteSettingPermissionCallback!(qrcodeResult);
       }
     });
-
   }
 
   @override
   Widget build(BuildContext context)
   {
-    ///viewType: Flutter 平台視圖系統使用視圖類型來指示我們打算使用哪個原生視圖，類似於插件系統。
-    ///creationParams: 這些是我們想要傳遞給原生視圖創建的參數——在我們的案例中要顯示的文本。
-    ///creationParamsCodec: 這定義了在將creationParams 發送到本機代碼(native code)時將發生的參數數據傳輸方法。
     return
       Stack(
         children: [

@@ -207,12 +207,10 @@ extension CameraController : AVCapturePhotoCaptureDelegate,AVCaptureVideoDataOut
                     
                     //偵測臉的位置的線匡，丟回去給UI做顯示
                     self.faceVisionFrameResult!(face);
-                    print("self.mFacebounds: \(self.mFacebounds)");
+                    
                     //檢查是否有在人臉框內
                     if(chectRect.contains(self.mFacebounds!))
                     {
-                        print("chectRect.width: \(chectRect.width)")
-                        
                         if(min(chectRect.width,self.mFacebounds!.height) < (chectRect.width)/2)
                         {
                             //too far
@@ -259,7 +257,6 @@ extension CameraController : AVCapturePhotoCaptureDelegate,AVCaptureVideoDataOut
     //Vision的callBack用來收QRCode影像
     func metadataOutput(_ output: AVCaptureMetadataOutput, didOutput metadataObjects: [AVMetadataObject], from connection: AVCaptureConnection)
     {
-        print("metadataOutput");
         // 檢查 metadataObjects 陣列是否為非空值，它至少需包含一個物件
         if metadataObjects == nil || metadataObjects.count == 0
         {
@@ -550,7 +547,6 @@ extension CameraController : AVCapturePhotoCaptureDelegate,AVCaptureVideoDataOut
     //camera focus callback
     override func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey: Any]?, context: UnsafeMutableRawPointer?)
     {
-        print("observeValue")
         if keyPath == "adjustingFocus"
         {
             print("============== adjustingFocus: \(rearCamera?.lensPosition)")

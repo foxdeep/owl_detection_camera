@@ -127,8 +127,6 @@ public class CameraView implements PlatformView,Handler.Callback, FaceDetectList
             @Override
             public void onStartDetectFace()
             {
-                Log.d("20220317Josh","closeFaceDetect() 2");
-
                 if(mCameraHelper!=null)
                     mCameraHelper.closeFaceDetect(false);
             }
@@ -197,8 +195,6 @@ public class CameraView implements PlatformView,Handler.Callback, FaceDetectList
 
         if(mCameraHelper !=null)
         {
-            Log.d("20220317Josh","closeFaceDetect() 3");
-
             mCameraHelper.closeFaceDetect(false);
             mCameraHelper.startFaceDetectWithMLKit();
         }
@@ -234,12 +230,10 @@ public class CameraView implements PlatformView,Handler.Callback, FaceDetectList
         }
         else if(msg.what == R.id.start_capture)
         {
-            Log.d("20220317Josh","closeFaceDetect() 4");
-
             mCameraHelper.closeFaceDetect(false);
             mCameraHelper.startFaceDetectWithMLKit();
         }
-        else if(msg.what == R.id.start_detect_face) //只有使用MLKit的時候才會呼叫這邊
+        else if(msg.what == R.id.start_detect_face) //only ml
         {
             if(msg.arg1!=0)
             {

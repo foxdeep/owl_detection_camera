@@ -1,7 +1,4 @@
 import 'package:flutter/material.dart';
-import 'dart:async';
-
-import 'package:flutter/services.dart';
 import 'package:owl_detection_camera/owl_detection_camera.dart';
 import 'package:owl_detection_camera_example/preview.dart';
 

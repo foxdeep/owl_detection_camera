@@ -28,33 +28,6 @@ import java.util.List;
 
 public class Utility
 {
-//    public static void detectFaceOrNot(Handler aHandler, FaceDetector mDetector, InputImage image, final Bitmap aBitmap)
-//    {
-//        Task<List<Face>> result = mDetector.process(image).addOnSuccessListener(new OnSuccessListener<List<Face>>()
-//        {
-//            @Override
-//            public void onSuccess(List<Face> faces)
-//            {
-//                aBitmap.recycle();
-//                Message msg = new Message();
-//                msg.arg1 = faces.size();
-//                msg.what = R.id.start_detect_face;
-//                aHandler.sendMessage(msg);
-//            }
-//        }).addOnFailureListener(new OnFailureListener()
-//        {
-//            @Override
-//            public void onFailure(@NonNull Exception e)
-//            {
-//                Message msg = new Message();
-//                msg.arg1 = 0;
-//                msg.obj = aBitmap;
-//                msg.what = R.id.start_detect_face;
-//                aHandler.sendMessage(msg);
-//            }
-//        });
-//    }
-
     public static boolean checkSystemWriteSettings(Activity aActivity)
     {
         boolean hasPermission = false;
