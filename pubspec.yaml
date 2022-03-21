@@ -1,7 +1,7 @@
 name: owl_detection_camera
-description: A new Flutter project.
+description: A Flutter plugin for IOS and Android allowing access to the device cameras for detecting face and QRcode automatically.
 version: 0.0.1
-homepage:
+homepage: https://github.com/foxdeep/owl_detection_camera/tree/release
 
 environment:
   sdk: ">=2.16.0 <3.0.0"

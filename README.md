@@ -2,13 +2,13 @@
 
 A Flutter plugin for IOS and Android allowing access to the device cameras for detecting face and QRcode automatically.
 
-Android:
-
-![image](https://github.com/foxdeep/owl_detection_camera/blob/release/screenshot/android.GIF)
-
 IOS:
 
 ![image](https://github.com/foxdeep/owl_detection_camera/blob/release/screenshot/ios.GIF)
+
+Android:
+
+![image](https://github.com/foxdeep/owl_detection_camera/blob/release/screenshot/android.GIF)
 
 ## Features
 
