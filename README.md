@@ -35,8 +35,7 @@ Add three rows to the `ios/Runner/Info.plist`:
 
 Change the minimum Android sdk version to 23 (or higher) in your android/app/build.gradle file.
 
-minSdkVersion 22
-
+minSdkVersion 23
 
 ### Usage
 
