@@ -462,10 +462,17 @@ public class CameraHelper
                         final Bitmap bmp= BitmapFactory.decodeByteArray(imageBytes,0,imageBytes.length);
                         Log.d(TAG,"onImageAvailable() get picture bf callback face");
 //                        Global.sCapturePictureTimingSeconds = Global.getCurrentSeconds();
-                        mCameraCaptures.onCaptureCallback(bmp,Defines.CAMERA_ACTION.IS_CAPTURING_FROM_FACE,null,0);
+                        if(mCaptureFaceRect == null)
+                        {
+                            closeFaceDetect(false);
+                        }
+                        else{
+                            closeFaceDetect(true);
+                            mCameraCaptures.onCaptureCallback(bmp,Defines.CAMERA_ACTION.IS_CAPTURING_FROM_FACE,null,0);
+                        }
                         Log.d(TAG,"onImageAvailable() get picture af callback face");
                         tempImage.close();
-                        closeFaceDetect(true);
+
 //                        unlockFocus();
                     }
                 }
