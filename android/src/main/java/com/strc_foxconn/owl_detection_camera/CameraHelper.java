@@ -222,12 +222,22 @@ public class CameraHelper
 
     private void closeCamera()
     {
+        handlerThread.quitSafely();
+        try {
+            handlerThread.join();
+            handlerThread = null;
+            handlerThread = null;
+        } catch (InterruptedException ie){
+            ie.printStackTrace();
+        }
+
         mCameraOpenCloseLock.release();
         mPreviewSize = new Size((int)PREVIEW_WIDTH,(int) PREVIEW_HEIGHT);
         mSavePicSize = new Size(SAVE_WIDTH, SAVE_HEIGHT);
 
-        if (null != mCameraDevice)
+        if (mCameraDevice!=null)
         {
+            mTextureView.setSurfaceTextureListener(null);
             mCameraDevice.close();
             mCameraDevice = null;
         }
@@ -441,6 +451,37 @@ public class CameraHelper
         }
     }
 
+    private CameraCaptureSession.StateCallback onStateCallback = new CameraCaptureSession.StateCallback()
+    {
+        @Override
+        public void onConfigured(@NonNull CameraCaptureSession cameraCaptureSession)
+        {
+            mCameraCaptureSession = cameraCaptureSession;
+            try {
+                mPreviewRequest = mCaptureRequestBuilder.build();
+                mCameraCaptureSession.setRepeatingRequest(mPreviewRequest, mCaptureCallBack, mCameraHandler);
+            } catch (Exception e) {
+                Log.d(TAG, "createCaptureSession() onConfigured() error:" + e.getMessage());
+                e.printStackTrace();
+            }
+        }
+
+        @Override
+        public void onConfigureFailed(@NonNull CameraCaptureSession cameraCaptureSession)
+        {
+            ToastUtils.showToast(mActivity, mActivity.getResources().getString(R.string.Com_open_camera_session_fail));
+//                initCameraInfo();
+        }
+
+        @Override
+        public void onClosed(@NonNull CameraCaptureSession session)
+        {
+            super.onClosed(session);
+            Log.d(TAG,"createCaptureSession() onClosed()");
+//                stopBackgroundThread();
+        }
+    };
+
     //保存圖片
     private ImageReader.OnImageAvailableListener onImageAvailableListener = new ImageReader.OnImageAvailableListener()
     {
@@ -551,7 +592,7 @@ public class CameraHelper
                     mCameraOpenCloseLock.release();
                     mCameraDevice = aCameraDevice;
                     try {
-                        createCaptureSession(aCameraDevice);
+                        createCaptureSession();
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
@@ -613,9 +654,9 @@ public class CameraHelper
     /**
      * 創建預覽Session
      */
-    private void createCaptureSession(CameraDevice cameraDevice) throws CameraAccessException
+    private void createCaptureSession() throws CameraAccessException
     {
-        mCaptureRequestBuilder = cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW);
+        mCaptureRequestBuilder = mCameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW);
 
         Surface surface = new Surface(mTextureView.getSurfaceTexture());
         mCaptureRequestBuilder.addTarget(surface);  //target為surface，就是將CaptureRequest的建構器與Surface對象綁定再一起
@@ -626,35 +667,38 @@ public class CameraHelper
         if (openFaceDetect && mFaceDetectMode != CaptureRequest.STATISTICS_FACE_DETECT_MODE_OFF)
             mCaptureRequestBuilder.set(CaptureRequest.STATISTICS_FACE_DETECT_MODE, CameraCharacteristics.STATISTICS_FACE_DETECT_MODE_SIMPLE);//人臉偵測
 
-        cameraDevice.createCaptureSession(Arrays.asList(surface, mImageReader.getSurface()), new CameraCaptureSession.StateCallback()
-        {
-            @Override
-            public void onClosed(@NonNull CameraCaptureSession session)
-            {
-                super.onClosed(session);
-                Log.d(TAG,"createCaptureSession() onClosed()");
-//                stopBackgroundThread();
-            }
+//        cameraDevice.createCaptureSession(Arrays.asList(surface, mImageReader.getSurface()), new CameraCaptureSession.StateCallback()
+//        {
+//            @Override
+//            public void onClosed(@NonNull CameraCaptureSession session)
+//            {
+//                super.onClosed(session);
+//                Log.d(TAG,"createCaptureSession() onClosed()");
+////                stopBackgroundThread();
+//            }
+//
+//            @Override
+//            public void onConfigured(@NotNull CameraCaptureSession session)
+//            {
+//                mCameraCaptureSession = session;
+//                try {
+//                    mPreviewRequest = mCaptureRequestBuilder.build();
+//                    mCameraCaptureSession.setRepeatingRequest(mPreviewRequest, mCaptureCallBack, mCameraHandler);
+//                } catch (Exception e) {
+//                    Log.d(TAG, "createCaptureSession() onConfigured() error:" + e.getMessage());
+//                    e.printStackTrace();
+//                }
+//            }
+//
+//            @Override
+//            public void onConfigureFailed(@NotNull CameraCaptureSession cameraCaptureSession) {
+//                ToastUtils.showToast(mActivity, mActivity.getResources().getString(R.string.Com_open_camera_session_fail));
+////                initCameraInfo();
+//            }
+//        }, mCameraHandler);
 
-            @Override
-            public void onConfigured(@NotNull CameraCaptureSession session)
-            {
-                mCameraCaptureSession = session;
-                try {
-                    mPreviewRequest = mCaptureRequestBuilder.build();
-                    mCameraCaptureSession.setRepeatingRequest(mPreviewRequest, mCaptureCallBack, mCameraHandler);
-                } catch (Exception e) {
-                    Log.d(TAG, "createCaptureSession() onConfigured() error:" + e.getMessage());
-                    e.printStackTrace();
-                }
-            }
 
-            @Override
-            public void onConfigureFailed(@NotNull CameraCaptureSession cameraCaptureSession) {
-                ToastUtils.showToast(mActivity, mActivity.getResources().getString(R.string.Com_open_camera_session_fail));
-//                initCameraInfo();
-            }
-        }, mCameraHandler);
+        mCameraDevice.createCaptureSession(Arrays.asList(surface, mImageReader.getSurface()),onStateCallback, mCameraHandler);
     }
 
     private CameraCaptureSession.CaptureCallback mCaptureCallBack = new CameraCaptureSession.CaptureCallback()
