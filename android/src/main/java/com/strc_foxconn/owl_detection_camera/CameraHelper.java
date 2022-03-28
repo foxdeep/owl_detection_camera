@@ -417,23 +417,23 @@ public class CameraHelper
         float scaledHeight = mTextureView.getRatioWH()[1] / ((float) activeArraySizeRect.height());
 
 
-        Log.d(TAG,"initFaceDetect() activeArraySizeRect Width: "+activeArraySizeRect.width()+"x"+" Height: " +activeArraySizeRect.height());
-        Log.d(TAG,"initFaceDetect() scaledWidth: "+scaledWidth+" Height: " +scaledHeight);
+//        Log.d(TAG,"initFaceDetect() activeArraySizeRect Width: "+activeArraySizeRect.width()+"x"+" Height: " +activeArraySizeRect.height());
+//        Log.d(TAG,"initFaceDetect() scaledWidth: "+scaledWidth+" Height: " +scaledHeight);
 
         boolean mirror = mCameraFacing == CameraCharacteristics.LENS_FACING_FRONT;
-        Log.d(TAG,"initFaceDetect() mirror: "+mirror);
+//        Log.d(TAG,"initFaceDetect() mirror: "+mirror);
 
         int mWindowWidth = mActivity.getWindowManager().getDefaultDisplay().getWidth();
         int mWindowHeight = mActivity.getWindowManager().getDefaultDisplay().getHeight();
 
         mFaceDetectMatrix.setRotate((float) mCameraSensorOrientation);
 
-        Log.d(TAG,"initFaceDetect() mCameraSensorOrientation: "+mCameraSensorOrientation + "mDisplayRotation: "+mDisplayRotation);
+//        Log.d(TAG,"initFaceDetect() mCameraSensorOrientation: "+mCameraSensorOrientation + "mDisplayRotation: "+mDisplayRotation);
 
         //        mFaceDetectMatrix.postScale(mirror ? -scaledWidth : scaledWidth, scaledHeight);
         mFaceDetectMatrix.postScale(mirror ? -scaledHeight : scaledHeight, scaledWidth);
 
-        Log.d(TAG,"initFaceDetect() mRealWindowWidth: "+sRealWindowWidth +" mRealWindowHeight: "+sRealWindowHeight);
+//        Log.d(TAG,"initFaceDetect() mRealWindowWidth: "+sRealWindowWidth +" mRealWindowHeight: "+sRealWindowHeight);
 
         //1.原本使用螢幕寬高即可，但因目前要實際顯示畫面故意超出螢幕寬高
 //        float width = (float)(MainActivity.sRealWindowHeight);
@@ -443,7 +443,7 @@ public class CameraHelper
         float width = (float)(mTextureView.getRatioWH()[0]);
         float height = (float)(mTextureView.getRatioWH()[1]);
 
-        Log.d(TAG,"initFaceDetect() Defines.sFACE_SCALE: "+Defines.sFACE_SCALE+" width: "+width+" height: "+height);
+//        Log.d(TAG,"initFaceDetect() Defines.sFACE_SCALE: "+Defines.sFACE_SCALE+" width: "+width+" height: "+height);
 
         if (exchangeWidthAndHeight(mDisplayRotation, mCameraSensorOrientation))
         {
@@ -1051,9 +1051,9 @@ public class CameraHelper
         Size pickerSize = null;
         ArrayList<Size> pickList = new ArrayList<>();
 
-        Log.d(TAG,"getBestSize() CameraHelper.PREVIEW_RATE: "+CameraHelper.PREVIEW_RATE);
+//        Log.d(TAG,"getBestSize() CameraHelper.PREVIEW_RATE: "+CameraHelper.PREVIEW_RATE);
         float screenRate = (float)sRealWindowHeight/(float)sRealWindowWidth;
-        Log.d(TAG,"getBestSize() CameraHelper screenRate: "+screenRate);
+//        Log.d(TAG,"getBestSize() CameraHelper screenRate: "+screenRate);
 
         for (Size size : sizeList)
         {
@@ -1062,13 +1062,13 @@ public class CameraHelper
             float sizeBigBorder = Math.max(size.getWidth(), size.getHeight());
             float sizeSmallBorder = Math.min(size.getWidth(), size.getHeight());
             float sizeRate = sizeBigBorder/sizeSmallBorder;//按比例找最接近的
-            Log.d(TAG,"getBestSize() sizeRate: "+sizeRate);
-            Log.d(TAG,"getBestSize() sRealWindowWidth: "+sRealWindowWidth+" sRealWindowHeight: "+sRealWindowHeight);
-            Log.d(TAG,"getBestSize() sizeSmallBorder: "+sizeSmallBorder+" sizeBigBorder: "+sizeBigBorder);
+//            Log.d(TAG,"getBestSize() sizeRate: "+sizeRate);
+//            Log.d(TAG,"getBestSize() sRealWindowWidth: "+sRealWindowWidth+" sRealWindowHeight: "+sRealWindowHeight);
+//            Log.d(TAG,"getBestSize() sizeSmallBorder: "+sizeSmallBorder+" sizeBigBorder: "+sizeBigBorder);
             float newWidth = Math.abs(sRealWindowWidth - sizeSmallBorder);
             float newHeight = Math.abs(sRealWindowHeight - sizeBigBorder);
             float diff = newWidth+newHeight;
-            Log.d(TAG,"getBestSize() diff: "+diff);
+//            Log.d(TAG,"getBestSize() diff: "+diff);
 
             if(diff < rate && (sizeSmallBorder >= sRealWindowWidth && sizeBigBorder >= sRealWindowHeight) && sizeBigBorder < 2000 )
             {
