@@ -18,6 +18,8 @@ class Define
     static let DETECTION_HINT_FORWARD = 1;
     static let DETECTION_HINT_BACKWARD = 2;
     
+    static let COUNT_WRONG_POST_DELAY_TIME = 145;
+    
     static let flutter_owl_camera_plugin = "owl_detection_camera";
     
     static let METHOD_CHANNEL_FACE_FRAME_SIZE="face_frame_size";

@@ -202,7 +202,7 @@ extension CameraController : AVCapturePhotoCaptureDelegate,AVCaptureVideoDataOut
                     if(self.mCountWrongPost==0)
                     {
                         self.mFaceDetectionHintCallback!(Define.DETECTION_HINT_FIT_CENTER);
-                        self.mCountWrongPost+=1;
+                        self.mCountWrongPost = Define.COUNT_WRONG_POST_DELAY_TIME;
                     }
                     
                     //偵測臉的位置的線匡，丟回去給UI做顯示
@@ -211,12 +211,12 @@ extension CameraController : AVCapturePhotoCaptureDelegate,AVCaptureVideoDataOut
                     //檢查是否有在人臉框內
                     if(chectRect.contains(self.mFacebounds!))
                     {
-                        if(min(chectRect.width,self.mFacebounds!.height) < (chectRect.width)/2)
+                        if(min(chectRect.width,self.mFacebounds!.height) < (chectRect.width)/1.3)
                         {
                             //too far
                             if(self.mCountWrongPost < 10)
                             {
-                                self.mCountWrongPost = 150;
+                                self.mCountWrongPost = Define.COUNT_WRONG_POST_DELAY_TIME;
                                 self.mFaceDetectionHintCallback!(Define.DETECTION_HINT_FORWARD);
                             }
                             else{
@@ -238,7 +238,7 @@ extension CameraController : AVCapturePhotoCaptureDelegate,AVCaptureVideoDataOut
                             //too close
                             if(distance<45 && (chectRect.width < self.mFacebounds!.width || chectRect.height < self.mFacebounds!.height))
                             {
-                                self.mCountWrongPost = 150;
+                                self.mCountWrongPost = Define.COUNT_WRONG_POST_DELAY_TIME;
                                 self.mFaceDetectionHintCallback!(Define.DETECTION_HINT_BACKWARD);
                             }
                         }
@@ -330,7 +330,7 @@ extension CameraController : AVCapturePhotoCaptureDelegate,AVCaptureVideoDataOut
             }
         }else
         {
-            print("mIsHandleResultToServer: \(mIsHandleResultToServer)");
+//            print("mIsHandleResultToServer: \(mIsHandleResultToServer)");
             
             if(!mIsHandleResultToServer)
             {
@@ -342,11 +342,17 @@ extension CameraController : AVCapturePhotoCaptureDelegate,AVCaptureVideoDataOut
                 
                 //flip image for mirror
                 let newImage = images.rotate(radians: .pi/2)!.withHorizontallyFlippedOrientation()
-                let witdhRatio = newImage.size.width/self.mScreenCGSize!.width;
-                let heightRatio = newImage.size.height/self.mScreenCGSize!.height;
-                print("witdhRatio:\(witdhRatio) heightRatio: \(heightRatio)");
+                let moreGap:CGFloat = 70
+                let widthRatio = (newImage.size.width/self.mScreenCGSize!.width);
+                let heightRatio = (newImage.size.height/self.mScreenCGSize!.height);
+                print("widthRatio:\(widthRatio) heightRatio: \(heightRatio)");
                 
-                let realPiexl = CGRect(origin: CGPoint(x:self.mFacebounds!.origin.x*witdhRatio,y:self.mFacebounds!.origin.y*heightRatio), size:CGSize(width:(self.mFacebounds!.width)*witdhRatio,height:(self.mFacebounds!.height)*heightRatio));
+                var realPiexl = rotateRect(CGRect(origin: CGPoint(x:(self.mFacebounds!.origin.x * widthRatio),y:self.mFacebounds!.origin.y*heightRatio), size:CGSize(width:(self.mFacebounds!.width)*widthRatio,height:(self.mFacebounds!.height)*heightRatio)));
+                realPiexl.size.width = realPiexl.width + moreGap
+                realPiexl.size.height = realPiexl.height + moreGap
+                realPiexl.origin.x = realPiexl.origin.x - moreGap;
+                realPiexl.origin.y = realPiexl.origin.y - moreGap;
+                
                 let cropImage = newImage.cropImage1( newImage , realPiexl);
                 
                 //                if let faceCallback = faceResult
@@ -383,6 +389,15 @@ extension CameraController : AVCapturePhotoCaptureDelegate,AVCaptureVideoDataOut
         //              self.present(photoVC, animated: true, completion: {self.stopCaptureSession()})
         //           }
         //------------------before-----------------
+    }
+    
+    func rotateRect(_ rect: CGRect) -> CGRect {
+        let x = rect.midX
+        let y = rect.midY
+        let transform = CGAffineTransform(translationX: x, y: y)
+            .rotated(by: .pi / 2)
+            .translatedBy(x: -x, y: -y)
+        return rect.applying(transform)
     }
     
     func getImageFromSampleBuffer (buffer:CMSampleBuffer) -> CIImage?
