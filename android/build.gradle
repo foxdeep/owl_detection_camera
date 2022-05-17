@@ -37,6 +37,7 @@ android {
 dependencies {
     // Use this dependency to use dynamically downloaded model in Google Play Service
 //    implementation 'com.google.android.gms:play-services-mlkit-face-detection:16.1.3'
-    implementation files('/Users/josh/FlutterProjects/owl_detection_camera/android/libs/core-3.4.1.jar')
+//    implementation files('/Users/josh/FlutterProjects/owl_detection_camera/android/libs/core-3.4.1.jar')
+    implementation group: 'com.google.zxing', name: 'core', version: '3.5.0'
 }
 
