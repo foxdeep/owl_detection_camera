@@ -18,6 +18,7 @@ class _PreviewState  extends State<Preview>
   bool mIsQRcode = false;
 
   bool mIsBrightness = true;
+  bool mIsDisableHint = true;
 
   String mImagePath = "";
   String mQRcodeResult = "";
@@ -133,7 +134,8 @@ class _PreviewState  extends State<Preview>
       setState(() {
         mIsDetectSuccess = false;
         mIsQRcode= false;
-        OwlDetectionCamera.startFaceDetection();
+        print("updateView");
+        OwlDetectionCamera.startDetection();
       });
     });
   }
@@ -179,30 +181,89 @@ class _PreviewState  extends State<Preview>
               width: size.width,
               height: bottomheight,
               child:
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  RaisedButton(
-                      child:
-                      Text("Start"),
-                      onPressed: (){
-                        OwlDetectionCamera.startFaceDetection();
-                      }),
-                  RaisedButton(
-                      child:
-                      Text("Stop"),
-                      onPressed: (){
-                        OwlDetectionCamera.stopFaceDetection();
-                      }),
-                  RaisedButton(
-                      child:
-                      Text("Brightness"),
-                      onPressed: (){
-                        OwlDetectionCamera.screenBright(mIsBrightness?OwlCameraDefine.SCREEN_DARK:OwlCameraDefine.SCREEN_BRIGHT);
-                        mIsBrightness = !mIsBrightness;
-                      }),
-                ],
-              ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: [
+                          Expanded(
+                            flex: 1,
+                            child:  RaisedButton(
+                                child:
+                                Text("Start",style: TextStyle(fontSize: 10),),
+                                onPressed: (){
+                                  OwlDetectionCamera.startDetection();
+                                }),
+                          ),
+                          Expanded(
+                            flex: 1,
+                            child:  RaisedButton(
+                                child:
+                                Text("Stop",style: TextStyle(fontSize: 10)),
+                                onPressed: (){
+                                  OwlDetectionCamera.stopDetection();
+                                }),
+                          ),
+                          Expanded(
+                            flex: 1,
+                            child: RaisedButton(
+                                child:
+                                Text("Brightness",style: TextStyle(fontSize: 10)),
+                                onPressed: (){
+                                  OwlDetectionCamera.screenBright(mIsBrightness?OwlCameraDefine.SCREEN_DARK:OwlCameraDefine.SCREEN_BRIGHT);
+                                  mIsBrightness = !mIsBrightness;
+                                }),
+                          ),
+                          Expanded(
+                            flex: 1,
+                            child: RaisedButton(
+                                child:
+                                Text("Disable Hint",style: TextStyle(fontSize: 10)),
+                                onPressed: (){
+                                  OwlDetectionCamera.disableHint(mIsDisableHint);
+                                  mIsDisableHint = !mIsDisableHint;
+                                }),
+                          ),
+                        ],
+                      ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: [
+                          Expanded(
+                            flex: 1,
+                            child: RaisedButton(
+                                child:
+                                Text("Detect QRcode",style: TextStyle(fontSize: 10)),
+                                onPressed: ()
+                                {
+                                  OwlDetectionCamera.setDetectionMode(OwlCameraDefine.QRCODE_MODE);
+                                }) ,
+                          ),
+                          Expanded(
+                            flex: 1,
+                            child: RaisedButton(
+                                child:
+                                Text("Detect Face",style: TextStyle(fontSize: 10)),
+                                onPressed: ()
+                                {
+                                  OwlDetectionCamera.setDetectionMode(OwlCameraDefine.FACE_MODE);
+                                }),
+                          ),
+                          Expanded(
+                            flex: 1,
+                            child: RaisedButton(
+                                child:
+                                Text("Blend mode",style: TextStyle(fontSize: 10)),
+                                onPressed: ()
+                                {
+                                  OwlDetectionCamera.setDetectionMode(OwlCameraDefine.BLEND_MODE);
+                                }),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
             ),
           ),
           Align(

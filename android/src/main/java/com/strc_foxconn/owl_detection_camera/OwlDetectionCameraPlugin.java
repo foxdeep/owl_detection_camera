@@ -76,12 +76,12 @@ public class OwlDetectionCameraPlugin implements FlutterPlugin, MethodCallHandle
         }
       }
     }
-    else if(call.method.equals(mMethodChannels.METHOD_ID_START_DETECTION_FACE))
+    else if(call.method.equals(mMethodChannels.METHOD_ID_START_DETECTION))
     {
       if(mOnMethodCallback!=null)
         mOnMethodCallback.onStartDetectFace();
     }
-    else if(call.method.equals(mMethodChannels.METHOD_ID_STOP_DETECTION_FACE))
+    else if(call.method.equals(mMethodChannels.METHOD_ID_STOP_DETECTION))
     {
       if(mOnMethodCallback!=null)
         mOnMethodCallback.onStopDetectFace();
@@ -123,6 +123,34 @@ public class OwlDetectionCameraPlugin implements FlutterPlugin, MethodCallHandle
 
           if(mOnMethodCallback!=null)
             mOnMethodCallback.onSetFaceDetectionHintText(center,forward,backward);
+        }
+      }
+    }
+    else if(call.method.equals(mMethodChannels.METHOD_SET_DETECTION_MODE))
+    {
+      if(call.arguments!=null)
+      {
+        if(call.arguments instanceof ArrayList)
+        {
+          ArrayList<Integer> args = (ArrayList<Integer>) call.arguments;
+          int detectionMode = args.get(0);
+
+          if(mOnMethodCallback!=null)
+            mOnMethodCallback.onSetDetectionMode(detectionMode);
+        }
+      }
+    }
+    else if(call.method.equals(mMethodChannels.METHOD_DISABLE_HINT))
+    {
+      if(call.arguments!=null)
+      {
+        if(call.arguments instanceof ArrayList)
+        {
+          ArrayList<Boolean> args = (ArrayList<Boolean>) call.arguments;
+          boolean disableHint = args.get(0);
+
+          if(mOnMethodCallback!=null)
+            mOnMethodCallback.onDisableHint(disableHint);
         }
       }
     }

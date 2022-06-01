@@ -38,7 +38,7 @@
 
     <dimen name="rebuild_face_start_gap">8dp</dimen>
     <dimen name="rebuild_face_end_gap">130dp</dimen>
-    <dimen name="detect_face_gap">55dp</dimen>
+    <dimen name="detect_face_gap">45dp</dimen>
 
     <dimen name="face_detection_hint_textview">7dp</dimen>
 

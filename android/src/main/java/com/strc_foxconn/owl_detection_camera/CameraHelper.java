@@ -15,13 +15,11 @@ import android.graphics.Matrix;
 import android.graphics.Rect;
 import android.graphics.RectF;
 import android.graphics.SurfaceTexture;
-import android.graphics.YuvImage;
 import android.hardware.camera2.CameraAccessException;
 import android.hardware.camera2.CameraCaptureSession;
 import android.hardware.camera2.CameraCharacteristics;
 import android.hardware.camera2.CameraDevice;
 import android.hardware.camera2.CameraManager;
-import android.hardware.camera2.CameraMetadata;
 import android.hardware.camera2.CaptureFailure;
 import android.hardware.camera2.CaptureRequest;
 import android.hardware.camera2.CaptureResult;
@@ -47,9 +45,7 @@ import androidx.annotation.RequiresApi;
 //import com.google.mlkit.vision.face.FaceDetection;
 //import com.google.mlkit.vision.face.FaceDetector;
 //import com.google.mlkit.vision.face.FaceDetectorOptions;
-import com.google.zxing.BarcodeFormat;
 import com.google.zxing.BinaryBitmap;
-import com.google.zxing.DecodeHintType;
 import com.google.zxing.MultiFormatReader;
 import com.google.zxing.RGBLuminanceSource;
 import com.google.zxing.ReaderException;
@@ -57,23 +53,16 @@ import com.google.zxing.Result;
 import com.google.zxing.common.HybridBinarizer;
 import com.strc_foxconn.owl_detection_camera.listener.CameraCaptures;
 import com.strc_foxconn.owl_detection_camera.listener.FaceDetectListener;
+import com.strc_foxconn.owl_detection_camera.listener.OnMethodCallback;
 import com.strc_foxconn.owl_detection_camera.utils.ToastUtils;
 import com.strc_foxconn.owl_detection_camera.views.AutoFitTextureView;
 
 import org.jetbrains.annotations.NotNull;
 
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
-import java.util.Comparator;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 
@@ -124,6 +113,7 @@ public class CameraHelper
     private boolean mIsDetectFaceFromMLKit = true;
 
     private boolean openFaceDetect = true;                                          //是否開啟人臉偵測
+    private int mDetectMode = OnMethodCallback.BLEND_MODE;
 
     private String mCameraId = "1";
 
@@ -791,7 +781,12 @@ public class CameraHelper
 
             //mCameraCaptureSession.stopRepeating();
             mCameraCaptureSession.capture(captureBuilder.build(), CaptureCallback, null);
-        } catch (CameraAccessException e) {
+        }
+        catch (CameraAccessException e) {
+            e.printStackTrace();
+        }
+        catch (IllegalStateException e)
+        {
             e.printStackTrace();
         }
     }
@@ -867,122 +862,140 @@ public class CameraHelper
     private void handleFaces(TotalCaptureResult result,CameraCaptureSession aCameraCaptureSession)
     {
         Face[] faces = result.get(CaptureResult.STATISTICS_FACES);
-        if (faces == null || faces.length < 1)
+        switch(mDetectMode)
         {
-            //no face go qrcode
-            if(mIsCapturing == Defines.CAMERA_ACTION.NONE)
+            case OnMethodCallback.FACE_MODE:
+            case OnMethodCallback.BLEND_MODE:
             {
-                mIsCapturing = Defines.CAMERA_ACTION.IS_CAPTURING_FROM_QRCODE;
-                captureStillPicture(aCameraCaptureSession);
-            }
-
-            if(mDetectStartTime==0)
-                mDetectStartTime++; //沒有人臉就開始倒數10秒，10秒後沒有人就移除人相框
-        }
-        else
-        {
-            mDetectStartTime = 0; //有人臉不到數計時。
-
-            if(mIsCapturing == Defines.CAMERA_ACTION.IS_CAPTURING_FROM_FACE)
-                mBufferCount++;
-
-            if(mBufferCount>200)
-            {
-                closeFaceDetect(false);
-            }
-
-            if(mIsCapturing == Defines.CAMERA_ACTION.NONE)
-            {
-                for (Face face : faces)
+                if ((faces == null || faces.length < 1))
                 {
-                    Rect bounds = face.getBounds();
-
-                    int left = bounds.left;
-                    int top = bounds.top;
-                    int right = bounds.right;
-                    int bottom = bounds.bottom;
-                    RectF rawFaceRect = new RectF(left, top, right, bottom);
-                    mFaceDetectMatrix.mapRect(rawFaceRect);
-
-                    mFacesRect.add(rawFaceRect);
-                    mActivity.runOnUiThread(new Runnable()
+                    //no face go qrcode
+                    if((mIsCapturing == Defines.CAMERA_ACTION.NONE) && (mDetectMode == OnMethodCallback.BLEND_MODE))
                     {
-                        @Override
-                        public void run()
-                        {
-                            mFaceDetectListener.onFaceDetect(null, mFacesRect.remove(0));
-                        }
-                    });
-
-                    if(mCountWrongPost==0)
-                    {
-                        Message msg = new Message();
-                        msg.what = R.id.show_face_hint;
-                        msg.arg1 = Defines.DETECTION_HINT_FIT_CENTER;
-                        msg.obj = rawFaceRect;
-                        mHandler.sendMessage(msg);
-                        mCountWrongPost = SHOW_HIT_SECONDS;
+                        mIsCapturing = Defines.CAMERA_ACTION.IS_CAPTURING_FROM_QRCODE;
+                        captureStillPicture(aCameraCaptureSession);
                     }
 
+                    if(mDetectStartTime==0)
+                        mDetectStartTime++; //沒有人臉就開始倒數10秒，10秒後沒有人就移除人相框
+                }
+                else
+                {
+                    mDetectStartTime = 0; //有人臉不倒數計時。
 
-                        Log.d(TAG,"mFaceFrameRect: "+mFaceFrameRect);
-                        Log.d(TAG,"rawFaceRect: "+rawFaceRect);
-                        //原本透過getScore來判定是否打卡或簽到，因為getScore在某些版本有問題，目前改成在這邊加入判斷人臉位置
-                        if(mFaceFrameRect.contains(rawFaceRect))
+                    if(mIsCapturing == Defines.CAMERA_ACTION.IS_CAPTURING_FROM_FACE)
+                        mBufferCount++;
+
+                    if(mBufferCount>200)
+                    {
+                        closeFaceDetect(false);
+                    }
+
+                    if(mIsCapturing == Defines.CAMERA_ACTION.NONE)
+                    {
+                        for (Face face : faces)
                         {
-                            //抓到小於300的臉忽略。
-                            if(Math.min(rawFaceRect.width(),rawFaceRect.height())<300)
+                            Rect bounds = face.getBounds();
+
+                            int left = bounds.left;
+                            int top = bounds.top;
+                            int right = bounds.right;
+                            int bottom = bounds.bottom;
+                            RectF rawFaceRect = new RectF(left, top, right, bottom);
+                            mFaceDetectMatrix.mapRect(rawFaceRect);
+
+                            mFacesRect.add(rawFaceRect);
+                            mActivity.runOnUiThread(new Runnable()
                             {
-                                if(mCountWrongPost<10)
+                                @Override
+                                public void run()
                                 {
-                                    Message msg = new Message();
-                                    msg.what = R.id.show_face_hint;
-                                    msg.arg1 = Defines.DETECTION_HINT_FORWARD;
-                                    msg.obj = rawFaceRect;
-                                    mHandler.sendMessage(msg);
-                                    mCountWrongPost = SHOW_HIT_SECONDS;// depends on fps
+                                    mFaceDetectListener.onFaceDetect(null, mFacesRect.remove(0));
                                 }
-                                else
-                                {
-                                    mCountWrongPost--;
-                                }
-                                continue;
+                            });
+
+                            if(mCountWrongPost==0)
+                            {
+                                Message msg = new Message();
+                                msg.what = R.id.show_face_hint;
+                                msg.arg1 = Defines.DETECTION_HINT_FIT_CENTER;
+                                msg.obj = rawFaceRect;
+                                mHandler.sendMessage(msg);
+                                mCountWrongPost = SHOW_HIT_SECONDS;
                             }
+
+
+                            Log.d(TAG,"mFaceFrameRect: "+mFaceFrameRect);
+                            Log.d(TAG,"rawFaceRect: "+rawFaceRect);
+                            //原本透過getScore來判定是否打卡或簽到，因為getScore在某些版本有問題，目前改成在這邊加入判斷人臉位置
+                            if(mFaceFrameRect.contains(rawFaceRect))
+                            {
+                                //抓到小於300的臉忽略。
+                                if(Math.min(rawFaceRect.width(),rawFaceRect.height())<300)
+                                {
+                                    if(mCountWrongPost<10)
+                                    {
+                                        Message msg = new Message();
+                                        msg.what = R.id.show_face_hint;
+                                        msg.arg1 = Defines.DETECTION_HINT_FORWARD;
+                                        msg.obj = rawFaceRect;
+                                        mHandler.sendMessage(msg);
+                                        mCountWrongPost = SHOW_HIT_SECONDS;// depends on fps
+                                    }
+                                    else
+                                    {
+                                        mCountWrongPost--;
+                                    }
+                                    continue;
+                                }
 
 //                            Global.sHandleFaceTimingSeconds = Global.getCurrentSeconds();
-                            Log.d(TAG,"handleFaces() get face mFaceFrameRect.contains(rawFaceRect)");
+                                Log.d(TAG,"handleFaces() get face mFaceFrameRect.contains(rawFaceRect)");
 
-                            mCaptureFaceRect = rawFaceRect;
-                            //偵測到有臉
-                            //mIsCapturing = Defines.CAMERA_ACTION.IS_CAPTURING_FROM_FACE;
-                            closeFaceDetect(true);
-                            captureStillPicture(aCameraCaptureSession);
-                            mCountWrongPost = 0;
-                            break;
-                        }
-                        else{
+                                mCaptureFaceRect = rawFaceRect;
+                                //偵測到有臉
+                                //mIsCapturing = Defines.CAMERA_ACTION.IS_CAPTURING_FROM_FACE;
+                                closeFaceDetect(true);
+                                captureStillPicture(aCameraCaptureSession);
+                                mCountWrongPost = 0;
+                                break;
+                            }
+                            else{
 
-                            double distance = Math.sqrt(Math.pow(mFaceFrameRect.centerX()-rawFaceRect.centerX(),2)+Math.pow(mFaceFrameRect.centerY()-rawFaceRect.centerY(),2));
-                            Log.d(TAG,"distance: "+distance+" mCountWrongPost: "+mCountWrongPost );
-                            if(mCountWrongPost<10)
-                            {
-                                if(distance>45 && (mFaceFrameRect.width() < rawFaceRect.width() || mFaceFrameRect.height() < rawFaceRect.height()))
+                                double distance = Math.sqrt(Math.pow(mFaceFrameRect.centerX()-rawFaceRect.centerX(),2)+Math.pow(mFaceFrameRect.centerY()-rawFaceRect.centerY(),2));
+                                Log.d(TAG,"distance: "+distance+" mCountWrongPost: "+mCountWrongPost );
+                                if(mCountWrongPost<10)
                                 {
-                                    Message msg = new Message();
-                                    msg.what = R.id.show_face_hint;
-                                    msg.arg1 = Defines.DETECTION_HINT_BACKWARD;
-                                    msg.obj = rawFaceRect;
-                                    mHandler.sendMessage(msg);
-                                    mCountWrongPost = SHOW_HIT_SECONDS;
+                                    if(distance>45 && (mFaceFrameRect.width() < rawFaceRect.width() || mFaceFrameRect.height() < rawFaceRect.height()))
+                                    {
+                                        Message msg = new Message();
+                                        msg.what = R.id.show_face_hint;
+                                        msg.arg1 = Defines.DETECTION_HINT_BACKWARD;
+                                        msg.obj = rawFaceRect;
+                                        mHandler.sendMessage(msg);
+                                        mCountWrongPost = SHOW_HIT_SECONDS;
+                                    }
                                 }
+
+                                if(mCountWrongPost>=10)
+                                    mCountWrongPost--;
                             }
 
-                            if(mCountWrongPost>=10)
-                                mCountWrongPost--;
                         }
-
+                    }
                 }
             }
+            break;
+            case OnMethodCallback.QRCODE_MODE:
+            {
+                //no face go qrcode
+                if(mIsCapturing == Defines.CAMERA_ACTION.NONE)
+                {
+                    mIsCapturing = Defines.CAMERA_ACTION.IS_CAPTURING_FROM_QRCODE;
+                    captureStillPicture(aCameraCaptureSession);
+                }
+            }
+            break;
         }
     }
 
@@ -1032,6 +1045,11 @@ public class CameraHelper
     public void setFaceFrameRect(RectF faceFrameRect)
     {
         mFaceFrameRect = faceFrameRect;
+    }
+
+    public void setDetectModel(int aDetectMode)
+    {
+        mDetectMode = aDetectMode;
     }
 
     /**

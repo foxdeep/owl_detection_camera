@@ -45,6 +45,8 @@ class CameraController: NSObject,AVCaptureMetadataOutputObjectsDelegate
     
     var mCameraLensPostion:Int = Define.REAR_CAMERA;
     
+    var mDetectionMode:Int = Define.BLEND_MODE;
+    
     var mScreenCGSize:CGSize?;
     
     var mHasFace = false;
@@ -95,6 +97,11 @@ extension CameraController : AVCapturePhotoCaptureDelegate,AVCaptureVideoDataOut
     func setCameraLens(aLens:Int)
     {
         self.mCameraLensPostion = aLens;
+    }
+    
+    func setDetectionMode(_ aMode:Int)
+    {
+        self.mDetectionMode = aMode;
     }
     
     func setFaceResultCallback(_ callback: @escaping (UIImage)->Void)
@@ -174,6 +181,11 @@ extension CameraController : AVCapturePhotoCaptureDelegate,AVCaptureVideoDataOut
     //Handlers 是指當你想要 Framework 在 Request 產生後執行一些東西或處理這個 Request 時
     func handleFaces(request: VNRequest, error: Error?)
     {
+        if(self.mDetectionMode == Define.QRCODE_MODE)
+        {
+            return;
+        }
+        
         if(!mIsHandleResultToServer)
         {
             DispatchQueue.main.async
@@ -257,6 +269,11 @@ extension CameraController : AVCapturePhotoCaptureDelegate,AVCaptureVideoDataOut
     //Vision的callBack用來收QRCode影像
     func metadataOutput(_ output: AVCaptureMetadataOutput, didOutput metadataObjects: [AVMetadataObject], from connection: AVCaptureConnection)
     {
+        if(self.mDetectionMode == Define.FACE_MODE)
+        {
+            return;
+        }
+                
         // 檢查 metadataObjects 陣列是否為非空值，它至少需包含一個物件
         if metadataObjects == nil || metadataObjects.count == 0
         {

@@ -23,6 +23,8 @@ class CameraCV : UIViewController
     
     let cameraController = CameraController()
     
+    var mDisableHint:Bool = false;
+    
     var mHintCenter:String = "請將臉部，對應人像框";
     var mHintForward:String = "請向前一點";
     var mHintBackward:String = "有點太近了";
@@ -67,6 +69,13 @@ extension CameraCV
             { (aValue:Int)->() in //screen bright
                 self.setScreenBright(aValue);
             },
+            { (aValue:Int)->() in //detect mode
+                self.setDetectionMode(aValue);
+            },
+            { (aValue:Bool)->() in //disable mode
+                self.setDisableHint(aValue);
+            },
+            
             {(aCenter:String,aForward:String,aBackward:String) -> () in
                 self.mHintCenter = aCenter;
                 self.mHintForward = aForward;
@@ -97,6 +106,10 @@ extension CameraCV
     
     func showFaceDetectionHint(aValue:Int)
     {
+        if(mDisableHint){
+            return;
+        }
+        
         switch(aValue)
         {
             case Define.DETECTION_HINT_FIT_CENTER:
@@ -128,6 +141,16 @@ extension CameraCV
         }
     }
     
+    func setDetectionMode(_ aValue:Int)
+    {
+        self.cameraController.setDetectionMode(aValue);
+    }
+    
+    func setDisableHint(_ aValue:Bool)
+    {
+        mDisableHint = aValue;
+    }
+
     func setSwiftFlutterOwlCameraPlugin(aSwiftFlutterOwlCameraPlugin: SwiftOwlDetectionCameraPlugin)
     {
         mSwiftFlutterOwlCameraPlugin = aSwiftFlutterOwlCameraPlugin;

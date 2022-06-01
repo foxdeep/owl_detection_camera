@@ -42,7 +42,7 @@ public class SwiftOwlDetectionCameraPlugin: NSObject, FlutterPlugin
             SwiftOwlDetectionCameraPlugin.sFaceFrameHeight = Int(truncating: faceFrameSize[1])
             print("getFaceFrameSize width: \(faceFrameSize[0]) height: \(faceFrameSize[1])");
         }
-        else if(call.method == Define.METHOD_STOP_DETECTION_FACE)
+        else if(call.method == Define.METHOD_STOP_DETECTION)
         {
             guard let methodCall = SwiftOwlDetectionCameraPlugin.mMethodCallback else
             {
@@ -51,7 +51,7 @@ public class SwiftOwlDetectionCameraPlugin: NSObject, FlutterPlugin
             
             methodCall.onStopFaceDetection();
         }
-        else if(call.method == Define.METHOD_START_DETECTION_FACE)
+        else if(call.method == Define.METHOD_START_DETECTION)
         {
             guard let methodCall = SwiftOwlDetectionCameraPlugin.mMethodCallback else
             {
@@ -75,6 +75,38 @@ public class SwiftOwlDetectionCameraPlugin: NSObject, FlutterPlugin
             let birght:Int = args[0] as? NSNumber as! Int;
             
             methodCall.onScreenBright(birght);
+        }
+        else if(call.method == Define.METHOD_SET_DETECTION_MODE)
+        {
+            guard let args = call.arguments as? NSArray else
+            {
+                return
+            }
+            
+            guard let methodCall = SwiftOwlDetectionCameraPlugin.mMethodCallback else
+            {
+                return;
+            }
+            
+            let detectMode:Int = args[0] as? NSNumber as! Int;
+            
+            methodCall.onSetDetectionMode(detectMode);
+        }
+        else if(call.method == Define.METHOD_DISABLE_HINT)
+        {
+            guard let args = call.arguments as? NSArray else
+            {
+                return
+            }
+            
+            guard let methodCall = SwiftOwlDetectionCameraPlugin.mMethodCallback else
+            {
+                return;
+            }
+            
+            let disableHint:Bool = args[0] as? NSNumber as! Bool;
+            
+            methodCall.onDisableHint(disableHint);
         }
         else if(call.method == Define.METHOD_ID_FACE_DETECT_HINT)
         {

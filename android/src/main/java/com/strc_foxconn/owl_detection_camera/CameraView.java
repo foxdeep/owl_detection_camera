@@ -47,6 +47,8 @@ public class CameraView implements PlatformView,Handler.Callback, FaceDetectList
     private int mStartX, mStartY;
 
     private boolean mHasInit = false;
+    private boolean mIsDisableHint = false;
+    private int mDetectMode = OnMethodCallback.BLEND_MODE;
 
     private String mHintFitCenter = "請將臉部，對應人像框";
     private String mHintForward = "請向前一點";
@@ -169,6 +171,19 @@ public class CameraView implements PlatformView,Handler.Callback, FaceDetectList
             }
 
             @Override
+            public void onSetDetectionMode(int aValue)
+            {
+                mDetectMode = aValue;
+                mCameraHelper.setDetectModel(mDetectMode);
+            }
+
+            @Override
+            public void onDisableHint(boolean aValue)
+            {
+                mIsDisableHint = aValue;
+            }
+
+            @Override
             public void onSetFaceDetectionHintText(String aFitCenter, String aHitForward, String aHintBackward)
             {
                 mHintFitCenter = aFitCenter;
@@ -247,24 +262,27 @@ public class CameraView implements PlatformView,Handler.Callback, FaceDetectList
         }
         else if(msg.what == R.id.show_face_hint)
         {
-            int action = msg.arg1;
-            switch(action)
+            if(!mIsDisableHint)
             {
-                case Defines.DETECTION_HINT_FIT_CENTER:
+                int action = msg.arg1;
+                switch(action)
                 {
-                    ToastUtils.showToastForFaceHint(mContext,mHintFitCenter);
+                    case Defines.DETECTION_HINT_FIT_CENTER:
+                    {
+                        ToastUtils.showToastForFaceHint(mContext,mHintFitCenter);
+                    }
+                    break;
+                    case Defines.DETECTION_HINT_FORWARD:
+                    {
+                        ToastUtils.showToastForFaceHint(mContext,mHintForward);
+                    }
+                    break;
+                    case Defines.DETECTION_HINT_BACKWARD:
+                    {
+                        ToastUtils.showToastForFaceHint(mContext,mHintBackward);
+                    }
+                    break;
                 }
-                break;
-                case Defines.DETECTION_HINT_FORWARD:
-                {
-                    ToastUtils.showToastForFaceHint(mContext,mHintForward);
-                }
-                break;
-                case Defines.DETECTION_HINT_BACKWARD:
-                {
-                    ToastUtils.showToastForFaceHint(mContext,mHintBackward);
-                }
-                break;
             }
         }
         return false;

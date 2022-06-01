@@ -23,14 +23,14 @@ class OwlDetectionCamera extends StatefulWidget
     await _channel.invokeMethod(OwlCameraDefine.METHOD_CHANNEL_FACE_FRAME_SIZE, [faceFrameSize]);
   }
 
-  static void stopFaceDetection() async
+  static void stopDetection() async
   {
-    await _channel.invokeMethod(OwlCameraDefine.METHOD_STOP_DETECTION_FACE, [""]);
+    await _channel.invokeMethod(OwlCameraDefine.METHOD_STOP_DETECTION, [""]);
   }
 
-  static void startFaceDetection() async
+  static void startDetection() async
   {
-    await _channel.invokeMethod(OwlCameraDefine.METHOD_START_DETECTION_FACE, [""]);
+    await _channel.invokeMethod(OwlCameraDefine.METHOD_START_DETECTION, [""]);
   }
 
   static void onResumeEvent() async
@@ -54,9 +54,23 @@ class OwlDetectionCamera extends StatefulWidget
     await _channel.invokeMethod(OwlCameraDefine.METHOD_ID_FACE_DETECT_HINT,[hint]);
   }
 
-  /**
-   * only Android
-   * */
+  /// Setting detect face,qrcode and both.
+  ///
+  /// aValue: OwlCameraDefine.FACE_MODE
+  ///         OwlCameraDefine.QRCODE_MODE
+  ///         OwlCameraDefine.BLEND_MODE
+  static void setDetectionMode(int aValue) async
+  {
+    await _channel.invokeMethod(OwlCameraDefine.METHOD_SET_DETECTION_MODE, [aValue]);
+  }
+
+  /// Disable face detection hint.
+  static void disableHint(bool aValue) async
+  {
+    await _channel.invokeMethod(OwlCameraDefine.METHOD_DISABLE_HINT, [aValue]);
+  }
+
+  ///only Android
   static void writeSettingPermission() async
   {
     await _channel.invokeMethod(OwlCameraDefine.METHOD_ID_WRITHE_SETTING_PERMISSION,[""]);
