@@ -789,11 +789,7 @@ public class CameraHelper
             //mCameraCaptureSession.stopRepeating();
             mCameraCaptureSession.capture(captureBuilder.build(), CaptureCallback, null);
         }
-        catch (CameraAccessException e) {
-            e.printStackTrace();
-        }
-        catch (IllegalStateException e)
-        {
+        catch (Exception e) {
             e.printStackTrace();
         }
     }
