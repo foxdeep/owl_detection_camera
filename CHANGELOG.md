@@ -1,3 +1,7 @@
+## 0.1.0
+
+ - Improvement.
+
 ## 0.0.9
 
  - Adding the function to choose the detection mode (QR code, face or blend function). 

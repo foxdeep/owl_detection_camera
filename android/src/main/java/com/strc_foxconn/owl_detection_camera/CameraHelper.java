@@ -510,37 +510,44 @@ public class CameraHelper
             }
             else if(mIsCapturing == Defines.CAMERA_ACTION.IS_CAPTURING_FROM_QRCODE)
             {
-                Image tempImage = imageReader.acquireLatestImage();
-                if(tempImage!=null)
+                try
                 {
-                    if(tempImage.getPlanes()!=null)
+                    Image tempImage = imageReader.acquireLatestImage();
+                    if(tempImage!=null)
                     {
+                        if(tempImage.getPlanes()!=null)
+                        {
 //                        Log.d("20210910JoshLogc","Format: "+tempImage.getFormat());
 
-                        //資料有效寬度，一般的，圖片width <= rowStride，這也是導致byte[].length <= capacity的原因
-                        // 所以我們只取width部分
-                        int width = tempImage.getWidth();
-                        int height = tempImage.getHeight();
+                            //資料有效寬度，一般的，圖片width <= rowStride，這也是導致byte[].length <= capacity的原因
+                            // 所以我們只取width部分
+                            int width = tempImage.getWidth();
+                            int height = tempImage.getHeight();
 
-                        ByteBuffer buf = tempImage.getPlanes()[0].getBuffer();
-                        byte[] imageBytes= new byte[buf.remaining()];
-                        buf.get(imageBytes);
-                        final Bitmap bmp= BitmapFactory.decodeByteArray(imageBytes,0,imageBytes.length);
+                            ByteBuffer buf = tempImage.getPlanes()[0].getBuffer();
+                            byte[] imageBytes= new byte[buf.remaining()];
+                            buf.get(imageBytes);
+                            final Bitmap bmp= BitmapFactory.decodeByteArray(imageBytes,0,imageBytes.length);
 
 //                        if(mOneTimes){
 //                            saveYuv2Jpeg("/sdcard/qrcord_result.jpg",yuvBytes,width,height);
 //                            mOneTimes = false;
 //                        }
 
-                        //mage image =  imageReader.acquireLatestImage();
+                            //mage image =  imageReader.acquireLatestImage();
 //                        ByteBuffer buf = tempImage.getPlanes()[0].getBuffer();
 //                        byte[] imageBytes= new byte[buf.remaining()];
 //                        buf.get(imageBytes);
 //                        Log.d("20210910vjoshlog","bf qrcode scan");
-                        decode(bmp,tempImage.getWidth(),tempImage.getHeight());
+                            decode(bmp,tempImage.getWidth(),tempImage.getHeight());
 //                        Log.d("20210910vjoshlog","af qrcode scan");
-                        tempImage.close();
+                            tempImage.close();
+                        }
                     }
+                }
+                catch(Exception e)
+                {
+                    Log.d(TAG,"Exception: "+e.toString());
                 }
             }
         }
