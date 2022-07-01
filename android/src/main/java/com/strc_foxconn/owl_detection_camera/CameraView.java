@@ -39,8 +39,9 @@ public class CameraView implements PlatformView,Handler.Callback, FaceDetectList
 {
     private final String TAG = "owlCPCameraView";
 
-    public static int sRealWindowWidth;
-    public static int sRealWindowHeight;
+    public static int sRealScreenWidth;
+    public static int sRealScreenHeight;
+    public static int sRealStatusBarHeight;
 
     public static String sResolution = "";
 
@@ -72,6 +73,12 @@ public class CameraView implements PlatformView,Handler.Callback, FaceDetectList
         mInflater = LayoutInflater.from(context);  //動態布置
         mConvertView = mInflater.inflate(R.layout.camera_main_layout, null);
 
+        int resourceId = mContext.getResources().getIdentifier("status_bar_height","dimen","android");
+        if(resourceId>0)
+        {
+            sRealStatusBarHeight = mContext.getResources().getDimensionPixelSize(resourceId);
+        }
+
         init();
 //      Log.d(TAG,"Rendered on a native Android view (id: " + viewId + ")");
     }
@@ -82,12 +89,12 @@ public class CameraView implements PlatformView,Handler.Callback, FaceDetectList
         mTextureView = mConvertView.findViewById(R.id.texture);
 
         Display display = OwlDetectionCameraPlugin.mActivity.getWindowManager().getDefaultDisplay();
-        sRealWindowWidth = display.getWidth();
-        sRealWindowHeight = display.getHeight();
+        sRealScreenWidth = display.getWidth();
+        sRealScreenHeight = display.getHeight();
         DisplayMetrics metrics = new DisplayMetrics();
         display.getMetrics(metrics);
 
-        sResolution = sResolution + "sRealWindowWidth: "+sRealWindowWidth+" sRealWindowHeight: "+sRealWindowHeight+"\n";
+        sResolution = sResolution + "sRealWindowWidth: "+ sRealScreenWidth +" sRealWindowHeight: "+ sRealScreenHeight +"\n";
 
         Defines.sFACE_SCALE = (float)Defines.METRICS_XDPI_SRANDARD /metrics.xdpi;
         int densityDpi = (int)(metrics.density * 160f);
@@ -108,8 +115,8 @@ public class CameraView implements PlatformView,Handler.Callback, FaceDetectList
         mCameraHelper.setFaceDetectListener(this);
         mCameraHelper.setHandler(mHandler);
 
-        mStartX = (sRealWindowWidth / 2) - (OwlDetectionCameraPlugin.mFaceFrameSize.get(0) / 2);
-        mStartY = (sRealWindowHeight / 2) - (OwlDetectionCameraPlugin.mFaceFrameSize.get(1) / 2);
+        mStartX = (sRealScreenWidth / 2) - (OwlDetectionCameraPlugin.mFaceFrameSize.get(0) / 2);
+        mStartY = (sRealScreenHeight / 2) - (OwlDetectionCameraPlugin.mFaceFrameSize.get(1) / 2);
 
         if(!mHasInit)
         {
@@ -119,7 +126,7 @@ public class CameraView implements PlatformView,Handler.Callback, FaceDetectList
 
         float faceGap = mContext.getResources().getDimension(R.dimen.detect_face_gap);
 
-        mFaceFrameRect = new RectF(mStartX+faceGap, mStartY+faceGap, sRealWindowWidth - mStartX-faceGap , sRealWindowHeight - mStartY - faceGap);
+        mFaceFrameRect = new RectF(mStartX+faceGap, mStartY+faceGap, sRealScreenWidth - mStartX-faceGap , sRealScreenHeight - mStartY - faceGap);
 
         mCameraHelper.setFaceFrameRect(mFaceFrameRect);
 
@@ -366,13 +373,13 @@ public class CameraView implements PlatformView,Handler.Callback, FaceDetectList
 
         if(faceRect.left<0)
             faceRect.left = 0;
-        if(faceRect.right>sRealWindowWidth)
-            faceRect.right=sRealWindowWidth;
+        if(faceRect.right> sRealScreenWidth)
+            faceRect.right= sRealScreenWidth;
 
         if(faceRect.top<0)
             faceRect.top = 0;
-        if(faceRect.bottom>sRealWindowHeight)
-            faceRect.bottom=sRealWindowHeight;
+        if(faceRect.bottom> sRealScreenHeight)
+            faceRect.bottom= sRealScreenHeight;
 
         Matrix matrix = new Matrix();
         if (aBitmap.getWidth() > aBitmap.getHeight())

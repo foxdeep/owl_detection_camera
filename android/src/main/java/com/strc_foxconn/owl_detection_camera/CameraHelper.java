@@ -2,9 +2,6 @@ package com.strc_foxconn.owl_detection_camera;
 
 import static android.content.Context.CAMERA_SERVICE;
 
-import static com.strc_foxconn.owl_detection_camera.CameraView.sRealWindowHeight;
-import static com.strc_foxconn.owl_detection_camera.CameraView.sRealWindowWidth;
-
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.res.Configuration;
@@ -62,6 +59,8 @@ import org.jetbrains.annotations.NotNull;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
@@ -1073,31 +1072,95 @@ public class CameraHelper
         ArrayList<Size> pickList = new ArrayList<>();
 
 //        Log.d(TAG,"getBestSize() CameraHelper.PREVIEW_RATE: "+CameraHelper.PREVIEW_RATE);
-        float screenRate = (float)sRealWindowHeight/(float)sRealWindowWidth;
+//        float screenRate = (float)MainActivity.sRealWindowHeight/(float)MainActivity.sRealWindowWidth;
 //        Log.d(TAG,"getBestSize() CameraHelper screenRate: "+screenRate);
+
+        int screenSmallBorder = Math.min(CameraView.sRealScreenWidth, CameraView.sRealScreenHeight);
+        int screenBigBorder = Math.max(CameraView.sRealScreenWidth, CameraView.sRealScreenHeight)+CameraView.sRealStatusBarHeight;
 
         for (Size size : sizeList)
         {
             sResolution = sResolution + size.getWidth()+"x"+size.getHeight()+"\n";
-            Log.d(TAG,"getBestSize() size Width: "+size.getWidth()+"x"+" Height: " +size.getHeight()+" rate: "+rate);
+//            Log.d(TAG,"getBestSize() size Width: "+size.getWidth()+"x"+" Height: " +size.getHeight()+" rate: "+rate);
             float sizeBigBorder = Math.max(size.getWidth(), size.getHeight());
             float sizeSmallBorder = Math.min(size.getWidth(), size.getHeight());
-            float sizeRate = sizeBigBorder/sizeSmallBorder;//按比例找最接近的
+//            float sizeRate = sizeBigBorder/sizeSmallBorder;//按比例找最接近的
 //            Log.d(TAG,"getBestSize() sizeRate: "+sizeRate);
-//            Log.d(TAG,"getBestSize() sRealWindowWidth: "+sRealWindowWidth+" sRealWindowHeight: "+sRealWindowHeight);
+            Log.d(TAG,"getBestSize() CameraView.sRealWindowWidth: "+CameraView.sRealScreenWidth +" MainActivity.sRealWindowHeight: "+CameraView.sRealScreenHeight);
 //            Log.d(TAG,"getBestSize() sizeSmallBorder: "+sizeSmallBorder+" sizeBigBorder: "+sizeBigBorder);
-            float newWidth = Math.abs(sRealWindowWidth - sizeSmallBorder);
-            float newHeight = Math.abs(sRealWindowHeight - sizeBigBorder);
+            float newWidth = Math.abs(screenSmallBorder - sizeSmallBorder);
+            float newHeight = Math.abs(screenBigBorder - sizeBigBorder);
             float diff = newWidth+newHeight;
 //            Log.d(TAG,"getBestSize() diff: "+diff);
 
-            if(diff < rate && (sizeSmallBorder >= sRealWindowWidth && sizeBigBorder >= sRealWindowHeight) && sizeBigBorder < 2000 )
+            if(diff < rate && (sizeSmallBorder >= screenSmallBorder) && sizeBigBorder < 2500 )
             {
                 rate = diff;
                 pickerSize = size;
             }
+
+//            if(Math.abs(sizeRate-screenRate) <= rate)
+//            {
+//                if(sizeBigBorder < 2000 && sizeBigBorder>1000)
+//                {
+//                pickerSize = size;
+////                pickerSize = new Size((int)sizeSmallBorder,(int)sizeBigBorder);
+//                rate = Math.abs(sizeRate-screenRate);
+//                pickList.add(pickerSize);
+////                    break;
+//                }
+//            }
         }
-        return pickerSize;
+
+        if(pickerSize == null)
+        {
+            //透過寬高找最適大小
+            List<Size> bigEnough = new ArrayList<>();   //比指定寬高大的Size列表
+            List<Size> notBigEnough = new ArrayList<>(); //比指定寬高小的Size列表
+
+            for (Size size : sizeList)
+            {
+                float sizeSmallBorder = Math.min(size.getWidth(), size.getHeight());
+                float sizeBigBorder = Math.max(size.getWidth(), size.getHeight());
+
+                //寬<=最大寬度  &&  高<=最大高度  &&  寬高比 == 目标值寬高比
+                if (sizeSmallBorder >= screenSmallBorder && sizeBigBorder >= screenBigBorder && sizeSmallBorder == sizeBigBorder * 900 / 1600)
+                {
+                    if (sizeSmallBorder >= 900 && sizeBigBorder >= 1600)
+                    {
+                        bigEnough.add(size);
+                    } else {
+                        notBigEnough.add(size);
+                    }
+                }
+            }
+
+            //選擇bigEnough中最小的值  或 notBigEnough中最大的值
+            if (bigEnough.size() > 0)
+            {
+                return Collections.min(bigEnough, new CompareSizesByArea());
+            } else if (notBigEnough.size() > 0)
+            {
+                return Collections.max(notBigEnough, new CompareSizesByArea());
+            } else
+            {
+                return sizeList.get(0);
+            }
+            //透過寬高最適大小
+        }
+        else{
+            return pickerSize;
+        }
+
+    }
+
+    private class CompareSizesByArea implements Comparator<Size>
+    {
+        @Override
+        public int compare(Size size1, Size size2)
+        {
+            return Long.signum(size1.getWidth() * size1.getHeight() - size2.getWidth() * size2.getHeight());
+        }
     }
 
     //根據提供的屏幕方向[displayRotation]和相機方向[sensorOrientation]返回是否需要交換寬高

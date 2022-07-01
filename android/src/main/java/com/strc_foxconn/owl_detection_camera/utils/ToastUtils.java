@@ -1,7 +1,7 @@
 package com.strc_foxconn.owl_detection_camera.utils;
 
 
-import static com.strc_foxconn.owl_detection_camera.CameraView.sRealWindowHeight;
+import static com.strc_foxconn.owl_detection_camera.CameraView.sRealScreenHeight;
 
 import android.content.Context;
 import android.graphics.Typeface;
@@ -31,7 +31,7 @@ public class ToastUtils {
         viewToast.setText(aMessage);
         viewToast.setPadding(15, 10, 15, 10);
         toast.setView(viewToast);
-        toast.setGravity(Gravity.BOTTOM,0,(sRealWindowHeight/12)*2);
+        toast.setGravity(Gravity.BOTTOM,0,(sRealScreenHeight /12)*2);
         toast.setDuration(Toast.LENGTH_SHORT);
         toast.show();
     }
