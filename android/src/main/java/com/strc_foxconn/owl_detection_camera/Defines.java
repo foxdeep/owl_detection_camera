@@ -1,6 +1,8 @@
 package com.strc_foxconn.owl_detection_camera;
 
+import android.content.Context;
 import android.graphics.Bitmap;
+import android.os.Build;
 import android.os.Environment;
 
 import java.io.File;
@@ -47,17 +49,31 @@ public class Defines
      * @param compress 壓縮百分比
      * @return 返回保存圖片文件
      * */
-    public static File savePicture(Bitmap aBitmap, String filePath, String imgName, int compress)
+    public static File savePicture(Context aContext, Bitmap aBitmap, String filePath, String imgName, int compress)
     {
+//        if (!imgName.contains(".png"))
+//        {
+//            imgName += ".png";
+//        }
         Bitmap newBM = aBitmap;
+
         try
         {
-            File dir = new File(filePath);
-            if (!dir.exists())
+            File f;
+            if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.R)
             {
-                dir.mkdirs();
+                String path = aContext.getExternalFilesDir(null) + "/OwlFaceIdCamera/";
+                f = new File(path, imgName);
             }
-            File f = new File(filePath, imgName);
+            else{
+                File dir = new File(filePath);
+                if (!dir.exists())
+                {
+                    dir.mkdirs();
+                }
+                f = new File(filePath, imgName);
+            }
+
             if (!f.exists())
             {
                 f.createNewFile();
@@ -83,6 +99,7 @@ public class Defines
         {
             return null;
         }
+
     }
 
 }

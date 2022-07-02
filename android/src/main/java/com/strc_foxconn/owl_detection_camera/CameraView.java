@@ -445,7 +445,7 @@ public class CameraView implements PlatformView,Handler.Callback, FaceDetectList
         @Override
         protected File doInBackground(String... photoName)
         {
-            return Defines.savePicture(mBitmap, Defines.FILE_PATH, mFileName, 100);
+            return Defines.savePicture(mContext,mBitmap, Defines.FILE_PATH, mFileName, 100);
         }
 
         @Override
