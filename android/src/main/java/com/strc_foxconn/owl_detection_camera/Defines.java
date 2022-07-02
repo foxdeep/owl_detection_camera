@@ -62,7 +62,7 @@ public class Defines
             File f;
             if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.R)
             {
-                String path = aContext.getExternalFilesDir(null) + "/OwlFaceIdCamera/";
+                String path = aContext.getExternalFilesDir(null).getPath();
                 f = new File(path, imgName);
             }
             else{
@@ -72,15 +72,15 @@ public class Defines
                     dir.mkdirs();
                 }
                 f = new File(filePath, imgName);
+                if (!f.exists())
+                {
+                    f.createNewFile();
+                } else
+                {
+                    f.delete();
+                }
             }
 
-            if (!f.exists())
-            {
-                f.createNewFile();
-            } else
-            {
-                f.delete();
-            }
             FileOutputStream out = new FileOutputStream(f);
 
             if (compress >= 1 && compress <= 100)
