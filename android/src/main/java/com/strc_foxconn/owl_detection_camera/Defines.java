@@ -28,7 +28,7 @@ public class Defines
     public static float sFACE_SCALE=1;
     public static float sFACE_SCALE_Y=1;
 
-    public static final String FILE_PATH = Environment.getExternalStorageDirectory().toString() + "/OwlFaceIdCamera/";
+    public static String FILE_PATH = Environment.getExternalStorageDirectory().toString() + "/OwlFaceIdCamera/";
 
     public static class CAMERA_ACTION
     {
@@ -44,34 +44,26 @@ public class Defines
     }
 
     /**
-     * @param filePath 文件保存路徑
-     * @param imgName  文件名
+     * @param filePath 檔案路徑
+     * @param imgName  檔案名稱
      * @param compress 壓縮百分比
-     * @return 返回保存圖片文件
+     * @return 返回儲存檔案
      * */
     public static File savePicture(Context aContext, Bitmap aBitmap, String filePath, String imgName, int compress)
     {
-//        if (!imgName.contains(".png"))
-//        {
-//            imgName += ".png";
-//        }
         Bitmap newBM = aBitmap;
 
         try
         {
-            File f;
-            if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.R)
+            File dir = new File(filePath);
+
+            if (!dir.exists())
+                dir.mkdirs();
+
+            File f = new File(filePath, imgName);
+
+            if(Build.VERSION.SDK_INT < Build.VERSION_CODES.R)
             {
-                String path = aContext.getExternalFilesDir(null).getPath();
-                f = new File(path, imgName);
-            }
-            else{
-                File dir = new File(filePath);
-                if (!dir.exists())
-                {
-                    dir.mkdirs();
-                }
-                f = new File(filePath, imgName);
                 if (!f.exists())
                 {
                     f.createNewFile();
@@ -99,7 +91,5 @@ public class Defines
         {
             return null;
         }
-
     }
-
 }

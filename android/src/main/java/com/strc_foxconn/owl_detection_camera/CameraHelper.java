@@ -197,6 +197,9 @@ public class CameraHelper
         else{
             mTextureView.setSurfaceTextureListener(mSurfaceTextureListener);
         }
+
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.R)
+            Defines.FILE_PATH = mActivity.getExternalFilesDir(null).getPath()+ "/OwlFaceIdCamera/";
     }
 
     public void stop()
