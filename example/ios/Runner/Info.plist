@@ -49,5 +49,7 @@
 	<string>Please give photo library additions permission</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Please give photo libary usage permissionss</string>
+	<key>CADisableMinimumFrameDurationOnPhone</key>
+	<true/>
 </dict>
 </plist>

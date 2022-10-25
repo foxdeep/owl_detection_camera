@@ -189,7 +189,7 @@ class _PreviewState  extends State<Preview>
                         children: [
                           Expanded(
                             flex: 1,
-                            child:  RaisedButton(
+                            child:  ElevatedButton(
                                 child:
                                 Text("Start",style: TextStyle(fontSize: 10),),
                                 onPressed: (){
@@ -198,7 +198,7 @@ class _PreviewState  extends State<Preview>
                           ),
                           Expanded(
                             flex: 1,
-                            child:  RaisedButton(
+                            child:  ElevatedButton(
                                 child:
                                 Text("Stop",style: TextStyle(fontSize: 10)),
                                 onPressed: (){
@@ -207,7 +207,7 @@ class _PreviewState  extends State<Preview>
                           ),
                           Expanded(
                             flex: 1,
-                            child: RaisedButton(
+                            child: ElevatedButton(
                                 child:
                                 Text("Brightness",style: TextStyle(fontSize: 10)),
                                 onPressed: (){
@@ -217,7 +217,7 @@ class _PreviewState  extends State<Preview>
                           ),
                           Expanded(
                             flex: 1,
-                            child: RaisedButton(
+                            child: ElevatedButton(
                                 child:
                                 Text("Disable Hint",style: TextStyle(fontSize: 10)),
                                 onPressed: (){
@@ -232,7 +232,7 @@ class _PreviewState  extends State<Preview>
                         children: [
                           Expanded(
                             flex: 1,
-                            child: RaisedButton(
+                            child: ElevatedButton(
                                 child:
                                 Text("Detect QRcode",style: TextStyle(fontSize: 10)),
                                 onPressed: ()
@@ -242,7 +242,7 @@ class _PreviewState  extends State<Preview>
                           ),
                           Expanded(
                             flex: 1,
-                            child: RaisedButton(
+                            child: ElevatedButton(
                                 child:
                                 Text("Detect Face",style: TextStyle(fontSize: 10)),
                                 onPressed: ()
@@ -252,7 +252,7 @@ class _PreviewState  extends State<Preview>
                           ),
                           Expanded(
                             flex: 1,
-                            child: RaisedButton(
+                            child: ElevatedButton(
                                 child:
                                 Text("Blend mode",style: TextStyle(fontSize: 10)),
                                 onPressed: ()

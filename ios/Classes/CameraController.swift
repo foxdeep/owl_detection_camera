@@ -166,16 +166,91 @@ extension CameraController : AVCapturePhotoCaptureDelegate,AVCaptureVideoDataOut
         
         switch UIDevice.current.orientation
         {
-            case .portraitUpsideDown:
-                exifOrientation = .left0ColBottom
-            case .landscapeLeft:
-                exifOrientation = devicePosition == .front ? .bottom0ColRight : .top0ColLeft
-            case .landscapeRight:
-                exifOrientation = devicePosition == .front ? .top0ColLeft : .bottom0ColRight
-            default:
-                exifOrientation = devicePosition == .front ? .left0ColTop : .right0ColTop
+        case .portraitUpsideDown:
+            exifOrientation = .left0ColBottom
+        case .landscapeLeft:
+            exifOrientation = devicePosition == .front ? .bottom0ColRight : .top0ColLeft
+        case .landscapeRight:
+            exifOrientation = devicePosition == .front ? .top0ColLeft : .bottom0ColRight
+        default:
+            exifOrientation = devicePosition == .front ? .left0ColTop : .right0ColTop
         }
         return exifOrientation.rawValue
+    }
+    
+    func checkIncludFace(request: VNRequest)
+    {
+        //perform all the UI updates on the main queue
+        guard let results = request.results as? [VNFaceObservation] else { return }
+
+        //  self.previewView.removeMask()
+
+        // if let callback = self.faceVisionFrameResult
+        // {
+        for face in results
+        {
+            let transform = CGAffineTransform(scaleX: 1, y: -1).translatedBy(x: 0, y: -self.mScreenCGSize!.height)
+
+            let translate = CGAffineTransform.identity.scaledBy(x: self.mScreenCGSize!.width, y: self.mScreenCGSize!.height)
+
+            // The coordinates are normalized to the dimensions of the processed image, with the origin at the image's lower-left corner.
+            self.mFacebounds = face.boundingBox.applying(translate).applying(transform)
+
+            let pendingWidth = (Int(self.mScreenCGSize!.width) - SwiftOwlDetectionCameraPlugin.sFaceFrameWidth)/2;
+            let pendingHeight = (Int(self.mScreenCGSize!.height) - SwiftOwlDetectionCameraPlugin.sFaceFrameHeight)/2;
+
+            let chectRect = CGRect(origin:CGPoint(x:pendingWidth,y:pendingHeight),size:CGSize(width: SwiftOwlDetectionCameraPlugin.sFaceFrameWidth, height: SwiftOwlDetectionCameraPlugin.sFaceFrameHeight));
+
+            if(self.mCountWrongPost==0)
+            {
+                self.mFaceDetectionHintCallback!(Define.DETECTION_HINT_FIT_CENTER);
+                self.mCountWrongPost = Define.COUNT_WRONG_POST_DELAY_TIME;
+            }
+
+            //偵測臉的位置的線匡，丟回去給UI做顯示
+            self.faceVisionFrameResult!(face);
+
+            //檢查是否有在人臉框內
+            if(chectRect.contains(self.mFacebounds!))
+            {
+                if(min(chectRect.width,self.mFacebounds!.height) < (chectRect.width)/1.3)
+                {
+                    //too far
+                    if(self.mCountWrongPost < 10)
+                    {
+                        self.mCountWrongPost = Define.COUNT_WRONG_POST_DELAY_TIME;
+                        self.mFaceDetectionHintCallback!(Define.DETECTION_HINT_FORWARD);
+                    }
+                    else{
+                        self.mCountWrongPost-=1;
+                    }
+                }
+                else{
+                    self.mHasFace = true;
+                    self.mCountWrongPost = 0;
+                    break;
+                }
+            }
+            else
+            {
+                if(self.mCountWrongPost < 10)
+                {
+                    let distance = sqrt((chectRect.width/2 - self.mFacebounds!.width/2)*2 + (chectRect.height/2 - self.mFacebounds!.height/2)*2);
+
+                    //too close
+                    if(distance<45 && (chectRect.width < self.mFacebounds!.width || chectRect.height < self.mFacebounds!.height))
+                    {
+                        self.mCountWrongPost = Define.COUNT_WRONG_POST_DELAY_TIME;
+                        self.mFaceDetectionHintCallback!(Define.DETECTION_HINT_BACKWARD);
+                    }
+                }
+
+                if(self.mCountWrongPost>=10)
+                {
+                    self.mCountWrongPost-=1;
+                }
+            }
+        }
     }
     
     //Handlers 是指當你想要 Framework 在 Request 產生後執行一些東西或處理這個 Request 時
@@ -188,79 +263,8 @@ extension CameraController : AVCapturePhotoCaptureDelegate,AVCaptureVideoDataOut
         
         if(!mIsHandleResultToServer)
         {
-            DispatchQueue.main.async
-            {
-                //perform all the UI updates on the main queue
-                guard let results = request.results as? [VNFaceObservation] else { return }
-                
-                //  self.previewView.removeMask()
-                
-                // if let callback = self.faceVisionFrameResult
-                // {
-                for face in results
-                {
-                    let transform = CGAffineTransform(scaleX: 1, y: -1).translatedBy(x: 0, y: -self.mScreenCGSize!.height)
-                    
-                    let translate = CGAffineTransform.identity.scaledBy(x: self.mScreenCGSize!.width, y: self.mScreenCGSize!.height)
-                    
-                    // The coordinates are normalized to the dimensions of the processed image, with the origin at the image's lower-left corner.
-                    self.mFacebounds = face.boundingBox.applying(translate).applying(transform)
-                    
-                    let pendingWidth = (Int(self.mScreenCGSize!.width) - SwiftOwlDetectionCameraPlugin.sFaceFrameWidth)/2;
-                    let pendingHeight = (Int(self.mScreenCGSize!.height) - SwiftOwlDetectionCameraPlugin.sFaceFrameHeight)/2;
-                    
-                    let chectRect = CGRect(origin:CGPoint(x:pendingWidth,y:pendingHeight),size:CGSize(width: SwiftOwlDetectionCameraPlugin.sFaceFrameWidth, height: SwiftOwlDetectionCameraPlugin.sFaceFrameHeight));
-                    
-                    if(self.mCountWrongPost==0)
-                    {
-                        self.mFaceDetectionHintCallback!(Define.DETECTION_HINT_FIT_CENTER);
-                        self.mCountWrongPost = Define.COUNT_WRONG_POST_DELAY_TIME;
-                    }
-                    
-                    //偵測臉的位置的線匡，丟回去給UI做顯示
-                    self.faceVisionFrameResult!(face);
-                    
-                    //檢查是否有在人臉框內
-                    if(chectRect.contains(self.mFacebounds!))
-                    {
-                        if(min(chectRect.width,self.mFacebounds!.height) < (chectRect.width)/1.3)
-                        {
-                            //too far
-                            if(self.mCountWrongPost < 10)
-                            {
-                                self.mCountWrongPost = Define.COUNT_WRONG_POST_DELAY_TIME;
-                                self.mFaceDetectionHintCallback!(Define.DETECTION_HINT_FORWARD);
-                            }
-                            else{
-                                self.mCountWrongPost-=1;
-                            }
-                        }
-                        else{
-                            self.mHasFace = true;
-                            self.mCountWrongPost = 0;
-                            break;
-                        }
-                    }
-                    else
-                    {
-                        if(self.mCountWrongPost < 10)
-                        {
-                            let distance = sqrt((chectRect.width/2 - self.mFacebounds!.width/2)*2 + (chectRect.height/2 - self.mFacebounds!.height/2)*2);
-                            
-                            //too close
-                            if(distance<45 && (chectRect.width < self.mFacebounds!.width || chectRect.height < self.mFacebounds!.height))
-                            {
-                                self.mCountWrongPost = Define.COUNT_WRONG_POST_DELAY_TIME;
-                                self.mFaceDetectionHintCallback!(Define.DETECTION_HINT_BACKWARD);
-                            }
-                        }
-                        
-                        if(self.mCountWrongPost>=10)
-                        {
-                            self.mCountWrongPost-=1;
-                        }
-                    }
-                }
+            DispatchQueue.main.async {
+                self.checkIncludFace(request:request)
             }
         }
         
