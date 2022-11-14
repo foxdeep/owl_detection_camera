@@ -86,6 +86,7 @@ extension CameraController : AVCapturePhotoCaptureDelegate,AVCaptureVideoDataOut
     func setFullScreenSize(aSize: CGSize)
     {
         mScreenCGSize = aSize;
+        print("aSize width: \(aSize.width) height: \(aSize.height)");
     }
     
     func setFaceHandleStatus(aValue:Bool)
@@ -97,6 +98,7 @@ extension CameraController : AVCapturePhotoCaptureDelegate,AVCaptureVideoDataOut
     func setCameraLens(aLens:Int)
     {
         self.mCameraLensPostion = aLens;
+        print("setCameraLens() aLens: \(aLens)");
     }
     
     func setDetectionMode(_ aMode:Int)
@@ -553,6 +555,9 @@ extension CameraController : AVCapturePhotoCaptureDelegate,AVCaptureVideoDataOut
         guard let captureSession = self.captureSession, captureSession.isRunning else { throw CameraControllerError.captureSessionIsMissing }
         
         self.previewLayer = AVCaptureVideoPreviewLayer(session: captureSession)
+       
+        print(" self.previewLayer?.bounds: \(self.previewLayer?.bounds)");
+
         self.previewLayer?.videoGravity = AVLayerVideoGravity.resizeAspectFill
         self.previewLayer?.connection?.videoOrientation = .portrait
         
@@ -619,6 +624,7 @@ extension CameraController : AVCapturePhotoCaptureDelegate,AVCaptureVideoDataOut
                 {
                     if camera.position == .front
                     {
+                        
                         self.frontCamera = camera
                         try camera.lockForConfiguration()
                         camera.unlockForConfiguration()
@@ -643,7 +649,7 @@ extension CameraController : AVCapturePhotoCaptureDelegate,AVCaptureVideoDataOut
             guard let captureSession = self.captureSession else { throw CameraControllerError.captureSessionIsMissing }
             
             //設定攝影機解析度
-            if captureSession.canSetSessionPreset(.hd1920x1080)
+            if captureSession.canSetSessionPreset(.photo)
             {
                 print("sessionPreset")
                 /*設定輸出的視頻音頻品質比特率(output video and audio bit rates)
@@ -651,7 +657,7 @@ extension CameraController : AVCapturePhotoCaptureDelegate,AVCaptureVideoDataOut
                  photo:輸出為4:3
                  必須根據所要輸出的比率設定UI Preview Screen
                  */
-                captureSession.sessionPreset = AVCaptureSession.Preset.hd1920x1080;
+                captureSession.sessionPreset = AVCaptureSession.Preset.photo;
             }
             
             if let rearCamera = self.rearCamera

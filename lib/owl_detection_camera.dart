@@ -48,9 +48,9 @@ class OwlDetectionCamera extends StatefulWidget
     await _channel.invokeMethod(OwlCameraDefine.METHOD_ID_SCREEN_BRIGHT,[aValue]);
   }
 
-  static void faceDetectHint(String aFitCenter,String aForward,String aBackwarod) async
+  static void faceDetectHint(String aFitCenter,String aForward,String  aBackward) async
   {
-    List<String> hint = [aFitCenter,aForward,aBackwarod];
+    List<String> hint = [aFitCenter,aForward,aBackward];
     await _channel.invokeMethod(OwlCameraDefine.METHOD_ID_FACE_DETECT_HINT,[hint]);
   }
 

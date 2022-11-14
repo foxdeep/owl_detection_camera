@@ -1,4 +1,9 @@
-## 0.1.5
+## 0.1.7
+
+- Improvement.
+- Modify camera preview problems in Ipad.
+
+## 0.1.6
 
 - Improvement.
 - Changing RaisedButton to ElevatedButton in example
