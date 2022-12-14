@@ -101,9 +101,9 @@ class _OwlCameraView extends State<OwlDetectionCamera>
       }
       else if(call.method == OwlCameraDefine.INVOKE_ID_FACE_RECTANGLE)
       {
-        var rectange = call.arguments["face_rectangle"];
+        var rectangle = call.arguments["face_rectangle"];
 
-        Rect faceRect = Rect.fromLTRB(rectange[0], rectange[1], rectange[2], rectange[3]);
+        Rect faceRect = Rect.fromLTRB(rectangle[0], rectangle[1], rectangle[2], rectangle[3]);
         OwlDetectionCamera.onFaceRectangleCallback!(faceRect);
       }
       else if(call.method == OwlCameraDefine.INVOKE_ID_QRCODE_TEXT)
@@ -143,6 +143,4 @@ class _OwlCameraView extends State<OwlDetectionCamera>
         ],
       );
   }
-
-
 }

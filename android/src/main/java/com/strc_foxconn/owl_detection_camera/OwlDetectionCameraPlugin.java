@@ -210,14 +210,7 @@ public class OwlDetectionCameraPlugin implements FlutterPlugin, MethodCallHandle
   {
     if(requestCode == Defines.SYSTEM_WRITE_SETTING_REQUEST_CODE)
     {
-      if(resultCode == Activity.RESULT_OK)
-      {
-        writeSettingPermission(true);
-      }
-      else
-      {
-        writeSettingPermission(false);
-      }
+      writeSettingPermission(resultCode == Activity.RESULT_OK);
     }
     return false;
   }

@@ -1,6 +1,7 @@
 package com.strc_foxconn.owl_detection_camera;
 
 import android.content.Context;
+import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.graphics.Matrix;
 import android.graphics.RectF;
@@ -14,7 +15,9 @@ import android.util.Log;
 import android.view.Display;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewTreeObserver;
 import android.view.WindowManager;
+import android.widget.FrameLayout;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
@@ -47,9 +50,10 @@ public class CameraView implements PlatformView,Handler.Callback, FaceDetectList
 
     private int mStartX, mStartY;
 
+    private int mDetectMode = OnMethodCallback.BLEND_MODE;
+
     private boolean mHasInit = false;
     private boolean mIsDisableHint = false;
-    private int mDetectMode = OnMethodCallback.BLEND_MODE;
 
     private String mHintFitCenter = "請將臉部，對應人像框";
     private String mHintForward = "請向前一點";
@@ -61,6 +65,8 @@ public class CameraView implements PlatformView,Handler.Callback, FaceDetectList
 
     private LayoutInflater mInflater;
     private View mConvertView;
+
+    private FrameLayout mMainFF;
 
     private CameraHelper mCameraHelper;
     private AutoFitTextureView mTextureView;
@@ -86,7 +92,107 @@ public class CameraView implements PlatformView,Handler.Callback, FaceDetectList
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     private void init()
     {
-        mTextureView = mConvertView.findViewById(R.id.texture);
+        mMainFF = mConvertView.findViewById(R.id.framelayout_main);
+        ViewTreeObserver vto = mMainFF.getViewTreeObserver();
+        vto.addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener()
+        {
+            @Override
+            public void onGlobalLayout()
+            {
+                mMainFF.getViewTreeObserver().removeGlobalOnLayoutListener(this);
+                mTextureView = new AutoFitTextureView(OwlDetectionCameraPlugin.mActivity);
+                mMainFF.addView(mTextureView);
+
+                mCameraHelper = new CameraHelper(OwlDetectionCameraPlugin.mActivity, mTextureView);
+                mCameraHelper.setCameraCaptureListener(CameraView.this);
+                mCameraHelper.setFaceDetectListener(CameraView.this);
+                mCameraHelper.setHandler(mHandler);
+
+                mStartX = (sRealScreenWidth / 2) - (OwlDetectionCameraPlugin.mFaceFrameSize.get(0) / 2);
+                mStartY = (sRealScreenHeight / 2) - (OwlDetectionCameraPlugin.mFaceFrameSize.get(1) / 2);
+
+                if(!mHasInit)
+                {
+                    mCameraHelper.init();
+                    mHasInit = true;
+                }
+
+                float faceGap = mContext.getResources().getDimension(R.dimen.detect_face_gap);
+
+                mFaceFrameRect = new RectF(mStartX+faceGap, mStartY+faceGap, sRealScreenWidth - mStartX-faceGap , sRealScreenHeight - mStartY - faceGap);
+
+                mCameraHelper.setFaceFrameRect(mFaceFrameRect);
+
+                //from flutter
+                OwlDetectionCameraPlugin.setOnMethodCallBack(new OnMethodCallback()
+                {
+                    @Override
+                    public void onStartDetectFace()
+                    {
+                        if(mCameraHelper!=null)
+                            mCameraHelper.closeFaceDetect(false);
+                    }
+
+                    @Override
+                    public void onStopDetectFace()
+                    {
+                        if(mCameraHelper!=null)
+                            mCameraHelper.closeFaceDetect(true);
+                    }
+
+                    @Override
+                    public void onResumeEvent()
+                    {
+                        intoOnResumeEvent();
+                    }
+
+                    @Override
+                    public void onPauseEvent()
+                    {
+                        initOnPausePause();
+                    }
+
+                    @Override
+                    public void onScreenBright(int aValue)
+                    {
+                        switch (aValue)
+                        {
+                            case OnMethodCallback.SCREEN_BRIGHT:
+                            {
+                                setScreenBright(100);
+                            }
+                            break;
+                            case OnMethodCallback.SCREEN_DARK:
+                            {
+                                setScreenBright(10);
+                            }
+                            break;
+                        }
+                    }
+
+                    @Override
+                    public void onSetDetectionMode(int aValue)
+                    {
+                        mDetectMode = aValue;
+                        mCameraHelper.setDetectModel(mDetectMode);
+                    }
+
+                    @Override
+                    public void onDisableHint(boolean aValue)
+                    {
+                        mIsDisableHint = aValue;
+                    }
+
+                    @Override
+                    public void onSetFaceDetectionHintText(String aFitCenter, String aHitForward, String aHintBackward)
+                    {
+                        mHintFitCenter = aFitCenter;
+                        mHintForward = aHitForward;
+                        mHintBackward = aHintBackward;
+                    }
+                });
+            }
+        });
 
         Display display = OwlDetectionCameraPlugin.mActivity.getWindowManager().getDefaultDisplay();
         sRealScreenWidth = display.getWidth();
@@ -109,95 +215,6 @@ public class CameraView implements PlatformView,Handler.Callback, FaceDetectList
 
         Defines.sFACE_SCALE  = metrics.xdpi/changeStandard;
         Defines.sFACE_SCALE_Y  = metrics.ydpi/changeStandard;
-
-        mCameraHelper = new CameraHelper(OwlDetectionCameraPlugin.mActivity, mTextureView);
-        mCameraHelper.setCameraCaptureListener(this);
-        mCameraHelper.setFaceDetectListener(this);
-        mCameraHelper.setHandler(mHandler);
-
-        mStartX = (sRealScreenWidth / 2) - (OwlDetectionCameraPlugin.mFaceFrameSize.get(0) / 2);
-        mStartY = (sRealScreenHeight / 2) - (OwlDetectionCameraPlugin.mFaceFrameSize.get(1) / 2);
-
-        if(!mHasInit)
-        {
-            mCameraHelper.init();
-            mHasInit = true;
-        }
-
-        float faceGap = mContext.getResources().getDimension(R.dimen.detect_face_gap);
-
-        mFaceFrameRect = new RectF(mStartX+faceGap, mStartY+faceGap, sRealScreenWidth - mStartX-faceGap , sRealScreenHeight - mStartY - faceGap);
-
-        mCameraHelper.setFaceFrameRect(mFaceFrameRect);
-
-        //from native
-        OwlDetectionCameraPlugin.setOnMethodCallBack(new OnMethodCallback()
-        {
-            @Override
-            public void onStartDetectFace()
-            {
-                if(mCameraHelper!=null)
-                    mCameraHelper.closeFaceDetect(false);
-            }
-
-            @Override
-            public void onStopDetectFace()
-            {
-                if(mCameraHelper!=null)
-                    mCameraHelper.closeFaceDetect(true);
-            }
-
-            @Override
-            public void onResumeEvent()
-            {
-                intoOnResumeEvent();
-            }
-
-            @Override
-            public void onPauseEvent()
-            {
-                initOnPausePause();
-            }
-
-            @Override
-            public void onScreenBright(int aValue)
-            {
-                switch(aValue)
-                {
-                    case OnMethodCallback.SCREEN_BRIGHT:
-                    {
-                        setScreenBright(100);
-                    }
-                    break;
-                    case OnMethodCallback.SCREEN_DARK:
-                    {
-                        setScreenBright(10);
-                    }
-                    break;
-                }
-            }
-
-            @Override
-            public void onSetDetectionMode(int aValue)
-            {
-                mDetectMode = aValue;
-                mCameraHelper.setDetectModel(mDetectMode);
-            }
-
-            @Override
-            public void onDisableHint(boolean aValue)
-            {
-                mIsDisableHint = aValue;
-            }
-
-            @Override
-            public void onSetFaceDetectionHintText(String aFitCenter, String aHitForward, String aHintBackward)
-            {
-                mHintFitCenter = aFitCenter;
-                mHintForward = aHitForward;
-                mHintBackward = aHintBackward;
-            }
-        });
     }
 
     private void setScreenBright(int aBrightness)
@@ -255,18 +272,6 @@ public class CameraView implements PlatformView,Handler.Callback, FaceDetectList
             mCameraHelper.closeFaceDetect(false);
             mCameraHelper.startFaceDetectWithMLKit();
         }
-        else if(msg.what == R.id.start_detect_face) //only ml
-        {
-            if(msg.arg1!=0)
-            {
-                mCameraHelper.handleFaceFromMLKit();
-            }
-            else{
-                Bitmap bitmap = (Bitmap)msg.obj;
-                mCameraHelper.scanQRCode(bitmap,bitmap.getWidth(),bitmap.getHeight());
-                mCameraHelper.startFaceDetectWithMLKit();
-            }
-        }
         else if(msg.what == R.id.show_face_hint)
         {
             if(!mIsDisableHint)
@@ -316,9 +321,9 @@ public class CameraView implements PlatformView,Handler.Callback, FaceDetectList
                  {
                      case Defines.CAMERA_ACTION.IS_CAPTURING_FROM_FACE:
                      {
-                         Bitmap recognizeBitmap = resizeBitmap(aBitmap);
+//                         Bitmap recognizeBitmap = resizeBitmap(aBitmap);
                          String aTempUUID = UUID.randomUUID().toString();
-                         new saveToFileTask(recognizeBitmap,aTempUUID+".jpg").executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+                         new saveToFileTask(aBitmap,aTempUUID+".jpg").executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
                      }
                      break;
                      case Defines.CAMERA_ACTION.IS_CAPTURING_FROM_QRCODE:

@@ -38,10 +38,12 @@ import android.view.TextureView;
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 
-//import com.google.mlkit.vision.common.InputImage;
-//import com.google.mlkit.vision.face.FaceDetection;
-//import com.google.mlkit.vision.face.FaceDetector;
-//import com.google.mlkit.vision.face.FaceDetectorOptions;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.mlkit.vision.face.FaceDetection;
+import com.google.mlkit.vision.face.FaceDetectorOptions;
+import com.google.mlkit.vision.face.FaceDetector;
+import com.google.mlkit.vision.common.InputImage;
 import com.google.zxing.BinaryBitmap;
 import com.google.zxing.MultiFormatReader;
 import com.google.zxing.RGBLuminanceSource;
@@ -92,6 +94,7 @@ public class CameraHelper
     public static String sResolution = "";
 
     private final int SHOW_HIT_SECONDS = 120; //depends on fps.
+    private final int BITMAP_SCALE_SIZE = 4;
 
     private int SAVE_WIDTH = 900;                                                 //保存圖片的寬度
     private int SAVE_HEIGHT = 1600;                                               //保存圖片的高度
@@ -101,18 +104,18 @@ public class CameraHelper
     private int mCameraFacing = CameraCharacteristics.LENS_FACING_FRONT;
 
     private int mDisplayRotation;                                                   //手機方向
-    private int mFaceDetectMode = CaptureResult.STATISTICS_FACE_DETECT_MODE_OFF;    //人臉偵測模式
     private int mImgRotateForMLKit = -1;
-
-    private int mDetectStartTime = 0; //判斷是否將偵測框移除
 
     private int mIsCapturing = Defines.CAMERA_ACTION.NONE;
     private int mBufferCount = 0; //以防相機例外為拍照。
     private int mCountWrongPost = 0;//用來提示使用者臉該往哪擺
-    private boolean mIsDetectFaceFromMLKit = true;
-
-    private boolean openFaceDetect = true;                                          //是否開啟人臉偵測
     private int mDetectMode = OnMethodCallback.BLEND_MODE;
+
+    public int mRotate = 0;
+
+    private float mScaleX = 1,mScaleY = 1;
+
+    private boolean mIsDetectFaceFromMLKit = true;
 
     private String mCameraId = "1";
 
@@ -121,12 +124,10 @@ public class CameraHelper
 
     private List<RectF> mFacesRect = new ArrayList<>();                            //保存人臉座標訊息
 
-    private Matrix mFaceDetectMatrix = new Matrix();                                //人臉偵測座標轉換矩陣
-
     private Handler mCameraHandler;
     private Handler mHandler;
 
-    private HandlerThread handlerThread = new HandlerThread("CameraThread");
+    private HandlerThread handlerThread =null;
 
     private Size mPreviewSize = new Size((int)PREVIEW_WIDTH, (int)PREVIEW_HEIGHT);            //預覽大小
     private Size mSavePicSize = new Size(SAVE_WIDTH, SAVE_HEIGHT);                  //保存圖片大小
@@ -144,6 +145,9 @@ public class CameraHelper
 
     private CaptureRequest.Builder mCaptureRequestBuilder;
     private CaptureRequest mPreviewRequest;
+    private Surface mSurface;
+
+    public Matrix mTextureViewMatrix;
 
     private CameraCaptures mCameraCaptures;
 
@@ -151,10 +155,10 @@ public class CameraHelper
 
     private FaceDetectListener mFaceDetectListener;                                  //人臉偵測回調
 
-//    private FaceDetectorOptions mRealTimeOpts;
-//    private FaceDetector mDetector;
+    private FaceDetectorOptions mRealTimeOpts = null;
+    private FaceDetector mDetector;
 
-    private final MultiFormatReader multiFormatReader = new MultiFormatReader();
+    private final MultiFormatReader mMultiFormatReader = new MultiFormatReader();
 
     public void setFaceDetectListener(FaceDetectListener listener)
     {
@@ -174,32 +178,65 @@ public class CameraHelper
 
     public void init()
     {
-        mPreviewSize = new Size((int)PREVIEW_WIDTH, (int)PREVIEW_HEIGHT);            //預覽大小
+        mPreviewSize = new Size((int)PREVIEW_WIDTH, (int)PREVIEW_HEIGHT);
         mSavePicSize = new Size(SAVE_WIDTH, SAVE_HEIGHT);
         // Real-time contour detection
-//        mRealTimeOpts = new FaceDetectorOptions.Builder().setContourMode(FaceDetectorOptions.CONTOUR_MODE_ALL).build();
-//        mDetector = FaceDetection.getClient(mRealTimeOpts);
+        if (mRealTimeOpts == null){
+            FaceDetectorOptions.Builder temp = new FaceDetectorOptions.Builder();
+            temp.setPerformanceMode(FaceDetectorOptions.PERFORMANCE_MODE_FAST);
+            temp.setMinFaceSize(1);
+            temp.setContourMode(FaceDetectorOptions.CONTOUR_MODE_ALL);
+            mRealTimeOpts = temp.build();
+            mDetector = FaceDetection.getClient(mRealTimeOpts);
+        }
+
+        mRotate =0;
+        mScaleX = 1;
+        mScaleY = 1;
+        mImgRotateForMLKit=-1;
+
+        if(mTextureViewMatrix!=null)
+        {
+            mTextureViewMatrix.reset();
+            mTextureViewMatrix = null;
+        }
 
         if(Defines.sVersion == Defines.VERSION.JWS_DEVICE)
             mCameraFacing = 1; //JWS特殊硬體相機，1為RGB相機
 
         mDisplayRotation = mActivity.getWindowManager().getDefaultDisplay().getRotation();
-        handlerThread = new HandlerThread("CameraThread");
-        handlerThread.start();
+        if(handlerThread==null)
+        {
+            handlerThread = new HandlerThread("CameraThread");
+            handlerThread.start();
+        }
+
         mCameraHandler = new Handler(handlerThread.getLooper());
 
-        multiFormatReader.setHints(null);
+        mMultiFormatReader.setHints(null);
 
         if(mTextureView.isAvailable())
         {
             initCameraInfo();
         }
         else{
-            mTextureView.setSurfaceTextureListener(mSurfaceTextureListener);
+            setTextureViewSurfaceTextureListeners();
         }
 
-        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.R)
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.R){
             Defines.FILE_PATH = mActivity.getExternalFilesDir(null).getPath()+ "/OwlFaceIdCamera/";
+        }
+        else {
+            Defines.FILE_PATH = mActivity.getFilesDir().getPath()+ "/OwlFaceIdCamera/";
+        }
+    }
+
+    public void setTextureViewSurfaceTextureListeners()
+    {
+        if(mTextureView.getSurfaceTextureListener()==null)
+        {
+            mTextureView.setSurfaceTextureListener(mSurfaceTextureListener);
+        }
     }
 
     public void stop()
@@ -218,7 +255,6 @@ public class CameraHelper
         try {
             handlerThread.join();
             handlerThread = null;
-            handlerThread = null;
         } catch (InterruptedException ie){
             ie.printStackTrace();
         }
@@ -226,6 +262,8 @@ public class CameraHelper
         mCameraOpenCloseLock.release();
         mPreviewSize = new Size((int)PREVIEW_WIDTH,(int) PREVIEW_HEIGHT);
         mSavePicSize = new Size(SAVE_WIDTH, SAVE_HEIGHT);
+
+        mCaptureRequestBuilder.removeTarget(mSurface);
 
         if (mCameraDevice!=null)
         {
@@ -318,129 +356,65 @@ public class CameraHelper
         Log.d(TAG,"initCameraInfo() mPreviewSize Width: "+mPreviewSize.getWidth()+""+" Height: " +mPreviewSize.getHeight());
         Log.d(TAG,"initCameraInfo() mSavePicSize Width: "+mSavePicSize.getWidth()+""+" Height: " +mSavePicSize.getHeight());
 
-        mTextureView.getSurfaceTexture().setDefaultBufferSize(mPreviewSize.getWidth(), mPreviewSize.getHeight());
+        int rotation = mActivity.getWindowManager().getDefaultDisplay().getRotation();
 
         //根據預覽的尺寸大小調整TextureView的大小，保證畫面不被拉伸
         int orientation = mActivity.getResources().getConfiguration().orientation;
 
+        mTextureView.getSurfaceTexture().setDefaultBufferSize(mPreviewSize.getWidth(), mPreviewSize.getHeight());
+
         if (orientation == Configuration.ORIENTATION_LANDSCAPE)
         {
             mTextureView.setAspectRatio(mPreviewSize.getWidth(), mPreviewSize.getHeight());
+            configureTextureViewTransform();
         } else {
-            mTextureView.setAspectRatio(mPreviewSize.getWidth(), mPreviewSize.getHeight());
+            mTextureView.setAspectRatio(mPreviewSize.getHeight(), mPreviewSize.getWidth());
+            if(Surface.ROTATION_180 == rotation)
+                configureTextureViewTransform();
         }
-
-        if(Defines.sVersion == Defines.VERSION.JWS_DEVICE)
-            configureTextureViewTransform(mPreviewSize.getHeight(), mPreviewSize.getWidth());
 
         mImageReader = ImageReader.newInstance(mPreviewSize.getWidth(), mPreviewSize.getHeight(), ImageFormat.JPEG,7);
         mImageReader.setOnImageAvailableListener(onImageAvailableListener, mCameraHandler);
 
-        if (openFaceDetect)
-            initFaceDetect();
+        if(Defines.sVersion == Defines.VERSION.JWS_DEVICE)
+            configureTextureViewTransform();
 
         openCamera();
     }
 
-    private void configureTextureViewTransform(int viewWidth, int viewHeight)
+    private void configureTextureViewTransform()
     {
         if (null == mTextureView)
             return;
 
-        Log.d(TAG,"configureTextureViewTransform() viewWidth: "+viewWidth + "viewHeight: "+viewHeight);
+        int rotation = mActivity.getWindowManager().getDefaultDisplay().getRotation();
 
         Matrix matrix = new Matrix();
-        RectF viewRect = new RectF(0, 0, viewWidth, viewHeight);
-        RectF bufferRect = new RectF(0, 0, mPreviewSize.getWidth(), mPreviewSize.getHeight());
+        RectF viewRect = new RectF(0, 0, mPreviewSize.getWidth(),  mPreviewSize.getHeight());
         float centerX = viewRect.centerX();
         float centerY = viewRect.centerY();
-        bufferRect.offset(centerX - bufferRect.centerX(), 750);
-        matrix.setRectToRect(viewRect, bufferRect, Matrix.ScaleToFit.FILL);
-        float scale = Math.max((float) viewHeight / mPreviewSize.getWidth(), (float) viewWidth / mPreviewSize.getHeight());
-        matrix.postScale(scale, scale, centerX, centerY);
-        matrix.postRotate(90 , centerX, centerY);
-        mTextureView.setTransform(matrix);
-    }
-
-    /**
-     * 初始化人脸檢測相關訊息
-     */
-    private void initFaceDetect()
-    {
-        int[] faceDetectModes = mCameraCharacteristics.get(CameraCharacteristics.STATISTICS_INFO_AVAILABLE_FACE_DETECT_MODES);//人脸检测的模式
-
-        if (faceDetectModes == null)
-            return;
-
-        List<Integer> temFaceDetectModes = new ArrayList<>();
-        for (int faceDetectMode : faceDetectModes)
+        if (Surface.ROTATION_90 == rotation || Surface.ROTATION_270 == rotation)
         {
-            temFaceDetectModes.add(faceDetectMode);
+            float scaleY = (float) mPreviewSize.getWidth() / mPreviewSize.getHeight();
+            float scaleX = (float)  mPreviewSize.getHeight() / mPreviewSize.getWidth();
+            Log.d(TAG,"configureTextureViewTransform s scaleX: "+scaleX+" scaleY: "+scaleY);
+            mScaleX = scaleX;
+            mScaleY = scaleY;
+            mRotate = 90 * (rotation - 2);
+            matrix.preScale(scaleX, scaleY, centerX, centerY);
+            matrix.postRotate(mRotate, centerX, centerY);
+
+            Log.d(TAG,"configureTextureViewTransform 90");
+        }else if (Surface.ROTATION_180 == rotation) {
+            Log.d(TAG,"configureTextureViewTransform 180");
+            viewRect = new RectF(0, 0, mPreviewSize.getHeight(),  mPreviewSize.getWidth());
+            centerX = viewRect.centerX();
+            centerY = viewRect.centerY();
+            mRotate = 180;
+            matrix.postRotate(mRotate, centerX, centerY);
         }
-
-        if (temFaceDetectModes.contains(CaptureRequest.STATISTICS_FACE_DETECT_MODE_FULL))
-        {
-            mFaceDetectMode = CaptureRequest.STATISTICS_FACE_DETECT_MODE_FULL;
-        } else if (temFaceDetectModes.contains(CaptureRequest.STATISTICS_FACE_DETECT_MODE_SIMPLE))
-        {
-            mFaceDetectMode = CaptureRequest.STATISTICS_FACE_DETECT_MODE_FULL;
-        } else
-        {
-            mFaceDetectMode = CaptureRequest.STATISTICS_FACE_DETECT_MODE_OFF;
-        }
-
-//        if (mFaceDetectMode == CaptureRequest.STATISTICS_FACE_DETECT_MODE_OFF) {
-//            ToastUtils.showToast(mActivity, mActivity.getResources().getString(R.string.Com_camera_no_support_face_detect));
-//            return;
-//        }
-
-        Rect activeArraySizeRect = mCameraCharacteristics.get(CameraCharacteristics.SENSOR_INFO_ACTIVE_ARRAY_SIZE); //獲取成像區域
-
-        if (activeArraySizeRect == null)
-            return;
-
-
-        //1.原本使用螢幕寬高即可，但因目前要實際顯示畫面故意超出螢幕寬高
-//        float scaledWidth = MainActivity.sRealWindowHeight / ((float) activeArraySizeRect.width());
-//        float scaledHeight = MainActivity.sRealWindowWidth / ((float) activeArraySizeRect.height());
-
-        //2.使用超出去的大小.
-        float scaledWidth =  mTextureView.getRatioWH()[0] / ((float) activeArraySizeRect.width());
-        float scaledHeight = mTextureView.getRatioWH()[1] / ((float) activeArraySizeRect.height());
-
-
-//        Log.d(TAG,"initFaceDetect() activeArraySizeRect Width: "+activeArraySizeRect.width()+"x"+" Height: " +activeArraySizeRect.height());
-//        Log.d(TAG,"initFaceDetect() scaledWidth: "+scaledWidth+" Height: " +scaledHeight);
-
-        boolean mirror = mCameraFacing == CameraCharacteristics.LENS_FACING_FRONT;
-//        Log.d(TAG,"initFaceDetect() mirror: "+mirror);
-
-        int mWindowWidth = mActivity.getWindowManager().getDefaultDisplay().getWidth();
-        int mWindowHeight = mActivity.getWindowManager().getDefaultDisplay().getHeight();
-
-        mFaceDetectMatrix.setRotate((float) mCameraSensorOrientation);
-
-//        Log.d(TAG,"initFaceDetect() mCameraSensorOrientation: "+mCameraSensorOrientation + "mDisplayRotation: "+mDisplayRotation);
-
-        //        mFaceDetectMatrix.postScale(mirror ? -scaledWidth : scaledWidth, scaledHeight);
-        mFaceDetectMatrix.postScale(mirror ? -scaledHeight : scaledHeight, scaledWidth);
-
-//        Log.d(TAG,"initFaceDetect() mRealWindowWidth: "+sRealWindowWidth +" mRealWindowHeight: "+sRealWindowHeight);
-
-        //1.原本使用螢幕寬高即可，但因目前要實際顯示畫面故意超出螢幕寬高
-//        float width = (float)(MainActivity.sRealWindowHeight);
-//        float height = (float)(MainActivity.sRealWindowWidth);
-
-        //2.使用超出去的大小.
-        float width = (float)(mTextureView.getRatioWH()[0]);
-        float height = (float)(mTextureView.getRatioWH()[1]);
-
-//        Log.d(TAG,"initFaceDetect() Defines.sFACE_SCALE: "+Defines.sFACE_SCALE+" width: "+width+" height: "+height);
-
-        if (exchangeWidthAndHeight(mDisplayRotation, mCameraSensorOrientation))
-        {
-            mFaceDetectMatrix.postTranslate(height, width);
-        }
+        mTextureViewMatrix = matrix;
+        mTextureView.setTransform(mTextureViewMatrix);
     }
 
     private CameraCaptureSession.StateCallback onStateCallback = new CameraCaptureSession.StateCallback()
@@ -461,7 +435,7 @@ public class CameraHelper
         @Override
         public void onConfigureFailed(@NonNull CameraCaptureSession cameraCaptureSession)
         {
-            ToastUtils.showToast(mActivity, mActivity.getResources().getString(R.string.Com_open_camera_session_fail));
+//            ToastUtils.showToast(mActivity, mActivity.getResources().getString(R.string.Com_open_camera_session_fail));
 //                initCameraInfo();
         }
 
@@ -470,7 +444,6 @@ public class CameraHelper
         {
             super.onClosed(session);
             Log.d(TAG,"createCaptureSession() onClosed()");
-//                stopBackgroundThread();
         }
     };
 
@@ -519,10 +492,8 @@ public class CameraHelper
                     {
                         if(tempImage.getPlanes()!=null)
                         {
-//                        Log.d("20210910JoshLogc","Format: "+tempImage.getFormat());
-
                             //資料有效寬度，一般的，圖片width <= rowStride，這也是導致byte[].length <= capacity的原因
-                            // 所以我們只取width部分
+                            // 所以只取width部分
                             int width = tempImage.getWidth();
                             int height = tempImage.getHeight();
 
@@ -530,19 +501,7 @@ public class CameraHelper
                             byte[] imageBytes= new byte[buf.remaining()];
                             buf.get(imageBytes);
                             final Bitmap bmp= BitmapFactory.decodeByteArray(imageBytes,0,imageBytes.length);
-
-//                        if(mOneTimes){
-//                            saveYuv2Jpeg("/sdcard/qrcord_result.jpg",yuvBytes,width,height);
-//                            mOneTimes = false;
-//                        }
-
-                            //mage image =  imageReader.acquireLatestImage();
-//                        ByteBuffer buf = tempImage.getPlanes()[0].getBuffer();
-//                        byte[] imageBytes= new byte[buf.remaining()];
-//                        buf.get(imageBytes);
-//                        Log.d("20210910vjoshlog","bf qrcode scan");
-                            decode(bmp,tempImage.getWidth(),tempImage.getHeight());
-//                        Log.d("20210910vjoshlog","af qrcode scan");
+                            decode(bmp);
                             tempImage.close();
                         }
                     }
@@ -561,17 +520,8 @@ public class CameraHelper
         mIsDetectFaceFromMLKit = true;
     }
 
-    private Runnable canDoCaptureRunnable = new Runnable()
+    public void setCameraCaptureListener(CameraCaptures aCameraCaptures)
     {
-        @Override
-        public void run()
-        {
-            Log.d(TAG,"canDoCaptureRunnable() Can Do Capture");
-            mIsCapturing = Defines.CAMERA_ACTION.NONE;
-        }
-    };
-
-    public void setCameraCaptureListener(CameraCaptures aCameraCaptures){
         mCameraCaptures = aCameraCaptures;
     }
 
@@ -629,26 +579,19 @@ public class CameraHelper
             if(aIsClose)
             {
                 mIsCapturing = Defines.CAMERA_ACTION.IS_CAPTURING_FROM_FACE;
-                if(mCameraDevice!=null && mCameraCaptureSession!=null)
-                    mCameraCaptureSession.setRepeatingRequest(mPreviewRequest, null, mCameraHandler);
+                mIsDetectFaceFromMLKit = false;
             }
             else
             {
                 mIsCapturing = Defines.CAMERA_ACTION.NONE;
-                if(mCameraDevice!=null && mCameraCaptureSession!=null)
-                    mCameraCaptureSession.setRepeatingRequest(mPreviewRequest, mCaptureCallBack, mCameraHandler);
+                mIsDetectFaceFromMLKit = true;
             }
-        }catch (CameraAccessException e)
-        {
-            e.printStackTrace();
         }
         catch(IllegalStateException e)
         {
             e.printStackTrace();
         }
-        //mCameraCaptureSession.stopRepeating();
     }
-
 
     /**
      * 創建預覽Session
@@ -657,47 +600,13 @@ public class CameraHelper
     {
         mCaptureRequestBuilder = mCameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW);
 
-        Surface surface = new Surface(mTextureView.getSurfaceTexture());
-        mCaptureRequestBuilder.addTarget(surface);  //target為surface，就是將CaptureRequest的建構器與Surface對象綁定再一起
+        mSurface = new Surface(mTextureView.getSurfaceTexture());
+        mCaptureRequestBuilder.addTarget(mSurface);  //target為surface，就是將CaptureRequest的建構器與Surface對象綁定再一起
 //        mCaptureRequestBuilder.addTarget(mImageReader.getSurface());  //target為surface，就是將CaptureRequest的建構器與Surface對象綁定再一起
         mCaptureRequestBuilder.set(CaptureRequest.CONTROL_AE_MODE, CaptureRequest.CONTROL_AE_MODE_ON_AUTO_FLASH);     // 閃光燈
         mCaptureRequestBuilder.set(CaptureRequest.CONTROL_AF_MODE, CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE);// 自動對焦
 
-        if (openFaceDetect && mFaceDetectMode != CaptureRequest.STATISTICS_FACE_DETECT_MODE_OFF)
-            mCaptureRequestBuilder.set(CaptureRequest.STATISTICS_FACE_DETECT_MODE, CameraCharacteristics.STATISTICS_FACE_DETECT_MODE_SIMPLE);//人臉偵測
-
-//        cameraDevice.createCaptureSession(Arrays.asList(surface, mImageReader.getSurface()), new CameraCaptureSession.StateCallback()
-//        {
-//            @Override
-//            public void onClosed(@NonNull CameraCaptureSession session)
-//            {
-//                super.onClosed(session);
-//                Log.d(TAG,"createCaptureSession() onClosed()");
-////                stopBackgroundThread();
-//            }
-//
-//            @Override
-//            public void onConfigured(@NotNull CameraCaptureSession session)
-//            {
-//                mCameraCaptureSession = session;
-//                try {
-//                    mPreviewRequest = mCaptureRequestBuilder.build();
-//                    mCameraCaptureSession.setRepeatingRequest(mPreviewRequest, mCaptureCallBack, mCameraHandler);
-//                } catch (Exception e) {
-//                    Log.d(TAG, "createCaptureSession() onConfigured() error:" + e.getMessage());
-//                    e.printStackTrace();
-//                }
-//            }
-//
-//            @Override
-//            public void onConfigureFailed(@NotNull CameraCaptureSession cameraCaptureSession) {
-//                ToastUtils.showToast(mActivity, mActivity.getResources().getString(R.string.Com_open_camera_session_fail));
-////                initCameraInfo();
-//            }
-//        }, mCameraHandler);
-
-
-        mCameraDevice.createCaptureSession(Arrays.asList(surface, mImageReader.getSurface()),onStateCallback, mCameraHandler);
+        mCameraDevice.createCaptureSession(Arrays.asList(mSurface, mImageReader.getSurface()),onStateCallback, mCameraHandler);
     }
 
     private CameraCaptureSession.CaptureCallback mCaptureCallBack = new CameraCaptureSession.CaptureCallback()
@@ -706,48 +615,6 @@ public class CameraHelper
         public void onCaptureCompleted(CameraCaptureSession session, CaptureRequest request, TotalCaptureResult result)
         {
             super.onCaptureCompleted(session, request, result);
-
-//            Log.d("20220106Josh","onCaptureCompleted()");
-
-
-            //google face detect.
-            if (openFaceDetect && mFaceDetectMode != CaptureRequest.STATISTICS_FACE_DETECT_MODE_OFF)
-            {
-//                Log.d("20220106Josh","onCaptureCompleted() handleFaces()");
-
-                handleFaces(result,session);
-            }
-            else if(mIsDetectFaceFromMLKit && mIsCapturing == Defines.CAMERA_ACTION.NONE)
-            {
-                mIsDetectFaceFromMLKit = false;
-                Bitmap temp = mTextureView.getBitmap();
-                if(mImgRotateForMLKit == -1)
-                {
-                    boolean facingFront = mCameraCharacteristics.get(CameraCharacteristics.LENS_FACING) == CameraCharacteristics.LENS_FACING_FRONT;
-                    try
-                    {
-                        mImgRotateForMLKit = getRotationCompensation(mCameraId,mActivity,facingFront);
-                    }
-                    catch (CameraAccessException e)
-                    {
-                        e.printStackTrace();
-                    }
-                }
-
-//                InputImage image = InputImage.fromBitmap(temp, mImgRotateForMLKit);
-//                Utility.detectFaceOrNot(mHandler,mDetector,image,temp);
-            }
-//            temp.recycle();
-//            temp = null;
-
-//            Log.d("20210334JoshLog","a");
-//            else{
-//            if(!mIsCapturing){
-//                captureStillPicture();
-//                mIsCapturing = true;
-//            }
-
-//            }
         }
 
         @Override
@@ -855,153 +722,10 @@ public class CameraHelper
         }
     }
 
-    public void scanQRCode(Bitmap bmp,int aWidth,int aHeight)
+    public void scanQRCode(Bitmap bmp)
     {
         mIsCapturing = Defines.CAMERA_ACTION.IS_CAPTURING_FROM_QRCODE;
-        decode(bmp,aWidth,aHeight);
-    }
-
-    /**
-     * 處理人臉訊息
-     */
-    private void handleFaces(TotalCaptureResult result,CameraCaptureSession aCameraCaptureSession)
-    {
-        Face[] faces = result.get(CaptureResult.STATISTICS_FACES);
-        switch(mDetectMode)
-        {
-            case OnMethodCallback.FACE_MODE:
-            case OnMethodCallback.BLEND_MODE:
-            {
-                if ((faces == null || faces.length < 1))
-                {
-                    //no face go qrcode
-                    if((mIsCapturing == Defines.CAMERA_ACTION.NONE) && (mDetectMode == OnMethodCallback.BLEND_MODE))
-                    {
-                        mIsCapturing = Defines.CAMERA_ACTION.IS_CAPTURING_FROM_QRCODE;
-                        captureStillPicture(aCameraCaptureSession);
-                    }
-
-                    if(mDetectStartTime==0)
-                        mDetectStartTime++; //沒有人臉就開始倒數10秒，10秒後沒有人就移除人相框
-                }
-                else
-                {
-                    mDetectStartTime = 0; //有人臉不倒數計時。
-
-                    if(mIsCapturing == Defines.CAMERA_ACTION.IS_CAPTURING_FROM_FACE)
-                        mBufferCount++;
-
-                    if(mBufferCount>200)
-                    {
-                        closeFaceDetect(false);
-                    }
-
-                    if(mIsCapturing == Defines.CAMERA_ACTION.NONE)
-                    {
-                        for (Face face : faces)
-                        {
-                            Rect bounds = face.getBounds();
-
-                            int left = bounds.left;
-                            int top = bounds.top;
-                            int right = bounds.right;
-                            int bottom = bounds.bottom;
-                            RectF rawFaceRect = new RectF(left, top, right, bottom);
-                            mFaceDetectMatrix.mapRect(rawFaceRect);
-
-                            mFacesRect.add(rawFaceRect);
-                            mActivity.runOnUiThread(new Runnable()
-                            {
-                                @Override
-                                public void run()
-                                {
-                                    mFaceDetectListener.onFaceDetect(null, mFacesRect.remove(0));
-                                }
-                            });
-
-                            if(mCountWrongPost==0)
-                            {
-                                Message msg = new Message();
-                                msg.what = R.id.show_face_hint;
-                                msg.arg1 = Defines.DETECTION_HINT_FIT_CENTER;
-                                msg.obj = rawFaceRect;
-                                mHandler.sendMessage(msg);
-                                mCountWrongPost = SHOW_HIT_SECONDS;
-                            }
-
-
-                            Log.d(TAG,"mFaceFrameRect: "+mFaceFrameRect);
-                            Log.d(TAG,"rawFaceRect: "+rawFaceRect);
-                            //原本透過getScore來判定是否打卡或簽到，因為getScore在某些版本有問題，目前改成在這邊加入判斷人臉位置
-                            if(mFaceFrameRect.contains(rawFaceRect))
-                            {
-                                //抓到小於300的臉忽略。
-                                if(Math.min(rawFaceRect.width(),rawFaceRect.height())<300)
-                                {
-                                    if(mCountWrongPost<10)
-                                    {
-                                        Message msg = new Message();
-                                        msg.what = R.id.show_face_hint;
-                                        msg.arg1 = Defines.DETECTION_HINT_FORWARD;
-                                        msg.obj = rawFaceRect;
-                                        mHandler.sendMessage(msg);
-                                        mCountWrongPost = SHOW_HIT_SECONDS;// depends on fps
-                                    }
-                                    else
-                                    {
-                                        mCountWrongPost--;
-                                    }
-                                    continue;
-                                }
-
-//                            Global.sHandleFaceTimingSeconds = Global.getCurrentSeconds();
-                                Log.d(TAG,"handleFaces() get face mFaceFrameRect.contains(rawFaceRect)");
-
-                                mCaptureFaceRect = rawFaceRect;
-                                //偵測到有臉
-                                //mIsCapturing = Defines.CAMERA_ACTION.IS_CAPTURING_FROM_FACE;
-                                closeFaceDetect(true);
-                                captureStillPicture(aCameraCaptureSession);
-                                mCountWrongPost = 0;
-                                break;
-                            }
-                            else{
-
-                                double distance = Math.sqrt(Math.pow(mFaceFrameRect.centerX()-rawFaceRect.centerX(),2)+Math.pow(mFaceFrameRect.centerY()-rawFaceRect.centerY(),2));
-                                Log.d(TAG,"distance: "+distance+" mCountWrongPost: "+mCountWrongPost );
-                                if(mCountWrongPost<10)
-                                {
-                                    if(distance>45 && (mFaceFrameRect.width() < rawFaceRect.width() || mFaceFrameRect.height() < rawFaceRect.height()))
-                                    {
-                                        Message msg = new Message();
-                                        msg.what = R.id.show_face_hint;
-                                        msg.arg1 = Defines.DETECTION_HINT_BACKWARD;
-                                        msg.obj = rawFaceRect;
-                                        mHandler.sendMessage(msg);
-                                        mCountWrongPost = SHOW_HIT_SECONDS;
-                                    }
-                                }
-
-                                if(mCountWrongPost>=10)
-                                    mCountWrongPost--;
-                            }
-
-                        }
-                    }
-                }
-            }
-            break;
-            case OnMethodCallback.QRCODE_MODE:
-            {
-                //no face go qrcode
-                if(mIsCapturing == Defines.CAMERA_ACTION.NONE)
-                {
-                    mIsCapturing = Defines.CAMERA_ACTION.IS_CAPTURING_FROM_QRCODE;
-                    captureStillPicture(aCameraCaptureSession);
-                }
-            }
-            break;
-        }
+        decode(bmp);
     }
 
     /**
@@ -1009,12 +733,9 @@ public class CameraHelper
      * reuse the same reader objects from one decode to the next.
      *
      * @param aBitmap   The YUV preview frame.
-     * @param width  The width of the preview frame.
-     * @param height The height of the preview frame.
-     *
      * using at QRCode flow.
      */
-    private void decode(Bitmap aBitmap, int width, int height)
+    private void decode(Bitmap aBitmap)
     {
         Result rawResult = null;
 
@@ -1027,14 +748,14 @@ public class CameraHelper
 
         try
         {
-            rawResult = multiFormatReader.decodeWithState(bitmap);
+            rawResult = mMultiFormatReader.decodeWithState(bitmap);
         }
         catch (ReaderException re)
         {
             // continue
         } finally
         {
-            multiFormatReader.reset();
+            mMultiFormatReader.reset();
         }
 
         if (rawResult != null)
@@ -1084,18 +805,15 @@ public class CameraHelper
         for (Size size : sizeList)
         {
             sResolution = sResolution + size.getWidth()+"x"+size.getHeight()+"\n";
-//            Log.d(TAG,"getBestSize() size Width: "+size.getWidth()+"x"+" Height: " +size.getHeight()+" rate: "+rate);
             float sizeBigBorder = Math.max(size.getWidth(), size.getHeight());
             float sizeSmallBorder = Math.min(size.getWidth(), size.getHeight());
 //            float sizeRate = sizeBigBorder/sizeSmallBorder;//按比例找最接近的
-//            Log.d(TAG,"getBestSize() sizeRate: "+sizeRate);
             Log.d(TAG,"getBestSize() CameraView.sRealWindowWidth: "+CameraView.sRealScreenWidth +" MainActivity.sRealWindowHeight: "+CameraView.sRealScreenHeight);
 //            Log.d(TAG,"getBestSize() sizeSmallBorder: "+sizeSmallBorder+" sizeBigBorder: "+sizeBigBorder);
             float newWidth = Math.abs(screenSmallBorder - sizeSmallBorder);
             float newHeight = Math.abs(screenBigBorder - sizeBigBorder);
             float diff = newWidth+newHeight;
 //            Log.d(TAG,"getBestSize() diff: "+diff);
-
             if(diff < rate && (sizeSmallBorder >= screenSmallBorder) && sizeBigBorder < 2500 )
             {
                 rate = diff;
@@ -1215,7 +933,6 @@ public class CameraHelper
         @Override
         public void onSurfaceTextureSizeChanged(SurfaceTexture surface, int width, int height)
         {
-
         }
 
         @Override
@@ -1228,6 +945,159 @@ public class CameraHelper
         @Override
         public void onSurfaceTextureUpdated(SurfaceTexture surface)
         {
+            if(mIsDetectFaceFromMLKit && mIsCapturing == Defines.CAMERA_ACTION.NONE)
+            {
+                mIsDetectFaceFromMLKit = false;
+
+                if(mDetectMode != OnMethodCallback.QRCODE_MODE)
+                {
+                    new Thread(new Runnable()
+                    {
+                        @Override
+                        public void run()
+                        {
+                            Bitmap frame = mTextureView.getBitmap();
+                            Bitmap originalBitmap = Bitmap.createBitmap(frame,0,0,frame.getWidth(),frame.getHeight(),mTextureViewMatrix,false);
+                            Bitmap textureScaleBitmap = Bitmap.createScaledBitmap(originalBitmap, (int) originalBitmap.getWidth() / BITMAP_SCALE_SIZE, (int) originalBitmap.getHeight() / BITMAP_SCALE_SIZE, false);
+
+                            if(mImgRotateForMLKit==-1)
+                                mImgRotateForMLKit = 0;
+
+                            //混合模式必須以偵測人臉為主來切會QRCode/FaceDetection mode.
+                            InputImage inputImage = InputImage.fromBitmap(textureScaleBitmap, 0);
+                            mDetector.process(inputImage).addOnSuccessListener(new OnSuccessListener<List<com.google.mlkit.vision.face.Face>>()
+                            {
+                                @Override
+                                public void onSuccess(List<com.google.mlkit.vision.face.Face> faces)
+                                {
+                                    if (faces != null && !faces.isEmpty())
+                                    {
+                                        RectF bounds = new RectF(faces.get(0).getBoundingBox().left * BITMAP_SCALE_SIZE, faces.get(0).getBoundingBox().top * BITMAP_SCALE_SIZE, faces.get(0).getBoundingBox().right * BITMAP_SCALE_SIZE, faces.get(0).getBoundingBox().bottom * BITMAP_SCALE_SIZE);
+
+                                        mFacesRect.add(bounds);
+                                        mActivity.runOnUiThread(new Runnable()
+                                        {
+                                            @Override
+                                            public void run()
+                                            {
+                                                mFaceDetectListener.onFaceDetect(null, mFacesRect.remove(0));
+                                            }
+                                        });
+
+                                        if(mCountWrongPost==0)
+                                        {
+                                            Message msg = new Message();
+                                            msg.what = R.id.show_face_hint;
+                                            msg.arg1 = Defines.DETECTION_HINT_FIT_CENTER;
+                                            msg.obj = bounds;
+                                            mHandler.sendMessage(msg);
+                                            mCountWrongPost = SHOW_HIT_SECONDS;
+                                        }
+
+                                        //原本透過getScore來判定是否打卡或簽到，因為getScore在某些版本有問題，目前改成在這邊加入判斷人臉位置
+                                        if (mFaceFrameRect.contains(bounds))
+                                        {
+                                            //抓到小於300的臉忽略。
+                                            if(Math.min(bounds.width(),bounds.height())<300)
+                                            {
+                                                if(mCountWrongPost<10)
+                                                {
+                                                    Message msg = new Message();
+                                                    msg.what = R.id.show_face_hint;
+                                                    msg.arg1 = Defines.DETECTION_HINT_FORWARD;
+                                                    msg.obj = bounds;
+                                                    mHandler.sendMessage(msg);
+                                                    mCountWrongPost = SHOW_HIT_SECONDS;// depends on fps
+                                                }
+                                                else
+                                                {
+                                                    mCountWrongPost--;
+                                                }
+                                                mIsDetectFaceFromMLKit = true;
+                                            }
+                                            else
+                                            {
+                                                Log.d(TAG,"handleFaces() get face mFaceFrameRect.contains(rawFaceRect)");
+                                                mCaptureFaceRect = bounds;
+                                                closeFaceDetect(true);
+                                                RectF newT = new RectF(bounds.left,  bounds.top,  bounds.right, bounds.bottom);
+                                                //1.5倍做法
+                                                float gapW = (float)((newT.width()*1.5-newT.width())/2);
+                                                newT.left = newT.left-gapW;
+                                                newT.right = newT.right+gapW;
+                                                float gapH = (float)((newT.height()*1.5-newT.height())/2);
+                                                newT.top = newT.top-gapH;
+                                                newT.bottom = newT.bottom+gapH;
+                                                Bitmap temp = Bitmap.createBitmap(originalBitmap, (int) newT.left, (int) newT.top, (int) newT.width(), (int) newT.height());
+                                                mCameraCaptures.onCaptureCallback(temp, Defines.CAMERA_ACTION.IS_CAPTURING_FROM_FACE, null, 0);
+                                                mCountWrongPost = 0;
+                                            }
+                                        }
+                                        else
+                                        {
+                                            double distance = Math.sqrt(Math.pow(mFaceFrameRect.centerX()-bounds.centerX(),2)+Math.pow(mFaceFrameRect.centerY()-bounds.centerY(),2));
+                                            Log.d(TAG,"distance: "+distance+" mCountWrongPost: "+mCountWrongPost );
+                                            if(mCountWrongPost<10)
+                                            {
+                                                if(distance>45 && (mFaceFrameRect.width() < bounds.width() || mFaceFrameRect.height() < bounds.height()))
+                                                {
+                                                    Message msg = new Message();
+                                                    msg.what = R.id.show_face_hint;
+                                                    msg.arg1 = Defines.DETECTION_HINT_BACKWARD;
+                                                    msg.obj = bounds;
+                                                    mHandler.sendMessage(msg);
+                                                    mCountWrongPost = SHOW_HIT_SECONDS;
+                                                }
+                                            }
+
+                                            if(mCountWrongPost>=10)
+                                                mCountWrongPost--;
+
+                                            mIsDetectFaceFromMLKit = true;
+                                        }
+                                    }else
+                                    {
+                                        if(mDetectMode == OnMethodCallback.BLEND_MODE)
+                                        {
+                                            mIsCapturing = Defines.CAMERA_ACTION.IS_CAPTURING_FROM_QRCODE;
+                                            decode(textureScaleBitmap);
+                                        }
+
+                                        mIsDetectFaceFromMLKit = true;
+                                    }
+                                }
+                            }).addOnFailureListener(new OnFailureListener()
+                            {
+                                    @Override
+                                    public void onFailure(@NonNull Exception e)
+                                    {
+                                        if(mDetectMode == OnMethodCallback.BLEND_MODE){
+                                            mIsCapturing = Defines.CAMERA_ACTION.IS_CAPTURING_FROM_QRCODE;
+                                            decode(textureScaleBitmap);
+                                        }
+                                        mIsDetectFaceFromMLKit = true;
+                                    }
+                            });
+                        }
+                    }).start();
+                }
+                else
+                {
+                    new Thread(new Runnable()
+                    {
+                        @Override
+                        public void run()
+                        {
+                            Bitmap frame = mTextureView.getBitmap();
+                            Bitmap originalBitmap = Bitmap.createBitmap(frame,0,0,frame.getWidth(),frame.getHeight(),mTextureViewMatrix,false);
+                            Bitmap textureScaleBitmap = Bitmap.createScaledBitmap(originalBitmap, (int) originalBitmap.getWidth() / BITMAP_SCALE_SIZE, (int) originalBitmap.getHeight() / BITMAP_SCALE_SIZE, false);
+                            mIsCapturing = Defines.CAMERA_ACTION.IS_CAPTURING_FROM_QRCODE;
+                            decode(textureScaleBitmap);
+                            mIsDetectFaceFromMLKit = true;
+                        }
+                    }).start();
+                }
+            }
         }
     };
 }

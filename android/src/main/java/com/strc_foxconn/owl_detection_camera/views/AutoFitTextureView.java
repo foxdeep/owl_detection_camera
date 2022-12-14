@@ -11,6 +11,7 @@ public class AutoFitTextureView extends TextureView
 
     private int mRatioWidth = 0;
     private int mRatioHeight = 0;
+    private double mToShortBoardRate = 1.0;
 
     public AutoFitTextureView(Context context) {
         this(context, null);
@@ -33,7 +34,6 @@ public class AutoFitTextureView extends TextureView
         mRatioWidth = width;
         mRatioHeight = height;
         Log.d(TAG,"setAspectRatio() width: "+width+" height: "+height);
-
         requestLayout();
     }
 
@@ -43,14 +43,26 @@ public class AutoFitTextureView extends TextureView
     }
 
     @Override
-    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec)
+    {
         super.onMeasure(widthMeasureSpec, heightMeasureSpec);
         int width = MeasureSpec.getSize(widthMeasureSpec);
         int height = MeasureSpec.getSize(heightMeasureSpec);
         if (0 == mRatioWidth || 0 == mRatioHeight) {
             setMeasuredDimension(width, height);
         } else {
-            setMeasuredDimension(mRatioHeight, mRatioWidth);
+            if(width > mRatioHeight && height > mRatioWidth)
+            {
+                mToShortBoardRate = (float)width/(float)mRatioHeight;
+                int newHeight =(int)(mRatioHeight*mToShortBoardRate);
+                int newWidth =(int)(mRatioWidth*mToShortBoardRate);
+                Log.d(TAG,"onMeasure() newWidth: "+newWidth+" newHeight: "+newHeight);
+                setMeasuredDimension(newHeight,newWidth);
+            }
+            else{
+                //為了不讓相機影像變行成螢幕寬高比例。
+                setMeasuredDimension(mRatioWidth, mRatioHeight);
+            }
         }
     }
 }

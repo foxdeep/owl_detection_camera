@@ -42,14 +42,14 @@ class _MyAppState extends State<MyApp>  with WidgetsBindingObserver
         {
       if(Theme.of(context).platform == TargetPlatform.android)
       {
-        OwlDetectionCamera?.onResumeEvent();
+        OwlDetectionCamera.onResumeEvent();
       }
     }
     else if(state == AppLifecycleState.paused) //It need call pause event in Android version.
         {
       if(Theme.of(context).platform == TargetPlatform.android)
       {
-        OwlDetectionCamera?.onPauseEvent();
+        OwlDetectionCamera.onPauseEvent();
       }
     }
     super.didChangeAppLifecycleState(state);

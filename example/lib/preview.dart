@@ -41,7 +41,7 @@ class _PreviewState  extends State<Preview>
       }
     };
 
-    ///IOS maybe need times devicePixelRatio for real screen piexl.
+    ///IOS maybe need times devicePixelRatio for real screen pixel.
     OwlDetectionCamera.onFaceRectangleCallback = (Rect aValue)
     {
       print("Face Rectangle :$aValue");
@@ -62,7 +62,7 @@ class _PreviewState  extends State<Preview>
       print("WriteSettingPermissionCallback has:${aValue}");
     };
 
-    OwlDetectionCamera?.writeSettingPermission();
+    OwlDetectionCamera.writeSettingPermission();
   }
 
   void checkPermission(List<Permission> aPermissions) async
@@ -129,12 +129,11 @@ class _PreviewState  extends State<Preview>
 
   void updateView() async
   {
-    await Future.delayed(Duration(milliseconds: 2000), ()
+    await Future.delayed(const Duration(milliseconds: 2000), ()
     {
       setState(() {
         mIsDetectSuccess = false;
         mIsQRcode= false;
-        print("updateView");
         OwlDetectionCamera.startDetection();
       });
     });
@@ -142,8 +141,17 @@ class _PreviewState  extends State<Preview>
 
   Widget preview(var size,var ratio)
   {
-    var faceFrameWidth = size.width/1.5;
-    var faceFrameHeight = faceFrameWidth * 1.25;
+    var faceFrameWidth=0.0,faceFrameHeight=0.0;
+    if(size.width< size.height)
+    {
+      faceFrameWidth = size.width/1.5;
+      faceFrameHeight = faceFrameWidth * 1.25;
+    }
+    else{
+      faceFrameHeight = size.height/1.5;
+      faceFrameWidth = faceFrameHeight * 1.25;
+    }
+
     var pendingWidth = size.width - faceFrameWidth;
     var pendingHeight = size.height - faceFrameHeight;
 
@@ -155,8 +163,6 @@ class _PreviewState  extends State<Preview>
       OwlDetectionCamera.passFaceFrameSize(faceFrameWidth.toInt(),faceFrameHeight.toInt());
     }
 
-    var bottomheight = ratio * 48;
-
     return Stack(
         children: [
           OwlDetectionCamera(),
@@ -166,7 +172,7 @@ class _PreviewState  extends State<Preview>
               child:
               mIsDetectSuccess?
               Image.asset("assets/face_v3_success.png",
-                  fit: BoxFit.fill,
+                  fit: BoxFit.scaleDown,
                   width: faceFrameWidth,
                   height: faceFrameHeight)
                   :
@@ -179,9 +185,10 @@ class _PreviewState  extends State<Preview>
             alignment: Alignment.bottomCenter,
             child: Container(
               width: size.width,
-              height: bottomheight,
+              // height: bottomheight,
               child:
                   Column(
+                    mainAxisAlignment: MainAxisAlignment.end,
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       Row(
