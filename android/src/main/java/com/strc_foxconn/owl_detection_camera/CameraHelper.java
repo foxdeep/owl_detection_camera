@@ -115,7 +115,7 @@ public class CameraHelper
 
     private float mScaleX = 1,mScaleY = 1;
 
-    private boolean mIsDetectFaceFromMLKit = true;
+    private boolean mIsDetectFaceFromMLKit = false;
 
     private String mCameraId = "1";
 
@@ -218,6 +218,7 @@ public class CameraHelper
         if(mTextureView.isAvailable())
         {
             initCameraInfo();
+            setTextureViewSurfaceTextureListeners();
         }
         else{
             setTextureViewSurfaceTextureListeners();
@@ -234,9 +235,7 @@ public class CameraHelper
     public void setTextureViewSurfaceTextureListeners()
     {
         if(mTextureView.getSurfaceTextureListener()==null)
-        {
             mTextureView.setSurfaceTextureListener(mSurfaceTextureListener);
-        }
     }
 
     public void stop()
@@ -267,7 +266,7 @@ public class CameraHelper
 
         if (mCameraDevice!=null)
         {
-            mTextureView.setSurfaceTextureListener(null);
+//            mTextureView.setSurfaceTextureListener(null);
             mCameraDevice.close();
             mCameraDevice = null;
         }

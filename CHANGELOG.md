@@ -1,3 +1,7 @@
+## 0.1.9
+
+- Cancel detection at startup.
+
 ## 0.1.8
 
 - Modify camera preview distort problems.

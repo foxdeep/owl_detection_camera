@@ -50,7 +50,7 @@ class CameraController: NSObject,AVCaptureMetadataOutputObjectsDelegate
     var mScreenCGSize:CGSize?;
     
     var mHasFace = false;
-    var mIsHandleResultToServer = false;
+    var mIsHandleResultToServer = true;
     
     var mFacebounds:CGRect?;
     

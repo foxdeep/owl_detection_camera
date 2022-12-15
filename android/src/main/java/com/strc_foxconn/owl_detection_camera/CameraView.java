@@ -93,13 +93,13 @@ public class CameraView implements PlatformView,Handler.Callback, FaceDetectList
     private void init()
     {
         mMainFF = mConvertView.findViewById(R.id.framelayout_main);
-        ViewTreeObserver vto = mMainFF.getViewTreeObserver();
+        ViewTreeObserver vto = mConvertView.getViewTreeObserver();
         vto.addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener()
         {
             @Override
             public void onGlobalLayout()
             {
-                mMainFF.getViewTreeObserver().removeGlobalOnLayoutListener(this);
+                mConvertView.getViewTreeObserver().removeGlobalOnLayoutListener(this);
                 mTextureView = new AutoFitTextureView(OwlDetectionCameraPlugin.mActivity);
                 mMainFF.addView(mTextureView);
 
@@ -235,7 +235,6 @@ public class CameraView implements PlatformView,Handler.Callback, FaceDetectList
         if(mCameraHelper !=null)
         {
             mCameraHelper.closeFaceDetect(false);
-            mCameraHelper.startFaceDetectWithMLKit();
         }
 
         Utility.deleteFolder();
@@ -270,7 +269,6 @@ public class CameraView implements PlatformView,Handler.Callback, FaceDetectList
         else if(msg.what == R.id.start_capture)
         {
             mCameraHelper.closeFaceDetect(false);
-            mCameraHelper.startFaceDetectWithMLKit();
         }
         else if(msg.what == R.id.show_face_hint)
         {
