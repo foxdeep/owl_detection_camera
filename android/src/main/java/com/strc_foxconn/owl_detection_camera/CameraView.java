@@ -232,11 +232,6 @@ public class CameraView implements PlatformView,Handler.Callback, FaceDetectList
             mHasInit = true;
         }
 
-        if(mCameraHelper !=null)
-        {
-            mCameraHelper.closeFaceDetect(false);
-        }
-
         Utility.deleteFolder();
     }
 

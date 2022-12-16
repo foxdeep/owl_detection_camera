@@ -1,3 +1,7 @@
+## 0.2.0
+
+- Improvement.
+
 ## 0.1.9
 
 - Cancel detection at startup.
