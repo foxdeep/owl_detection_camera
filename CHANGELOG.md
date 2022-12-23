@@ -1,3 +1,7 @@
+## 0.2.1
+
+- Improvement.
+
 ## 0.2.0
 
 - Improvement.
