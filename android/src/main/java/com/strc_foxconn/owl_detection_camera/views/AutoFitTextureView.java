@@ -1,5 +1,8 @@
 package com.strc_foxconn.owl_detection_camera.views;
 
+import static com.strc_foxconn.owl_detection_camera.CameraView.sRealScreenHeight;
+import static com.strc_foxconn.owl_detection_camera.CameraView.sRealScreenWidth;
+
 import android.content.Context;
 import android.util.AttributeSet;
 import android.util.Log;
@@ -45,25 +48,27 @@ public class AutoFitTextureView extends TextureView
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec)
     {
-        super.onMeasure(widthMeasureSpec, heightMeasureSpec);
+//        super.onMeasure(widthMeasureSpec, heightMeasureSpec);
         int width = MeasureSpec.getSize(widthMeasureSpec);
         int height = MeasureSpec.getSize(heightMeasureSpec);
-        if (0 == mRatioWidth || 0 == mRatioHeight) {
-            setMeasuredDimension(width, height);
-        } else {
-            if(width > mRatioHeight && height > mRatioWidth)
-            {
-                mToShortBoardRate = (float)width/(float)mRatioHeight;
-                int newHeight =(int)(mRatioHeight*mToShortBoardRate);
-                int newWidth =(int)(mRatioWidth*mToShortBoardRate);
-                Log.d(TAG,"onMeasure() newWidth: "+newWidth+" newHeight: "+newHeight);
-                setMeasuredDimension(newHeight,newWidth);
-            }
-            else{
-                //為了不讓相機影像變行成螢幕寬高比例。
-                setMeasuredDimension(mRatioWidth, mRatioHeight);
-            }
-        }
+        setMeasuredDimension(sRealScreenWidth, sRealScreenHeight);
+
+//        if (0 == mRatioWidth || 0 == mRatioHeight) {
+//            setMeasuredDimension(width, height);
+//        } else {
+//            if(width > mRatioHeight && height > mRatioWidth)
+//            {
+//                mToShortBoardRate = (float)width/(float)mRatioHeight;
+//                int newHeight =(int)(mRatioHeight*mToShortBoardRate);
+//                int newWidth =(int)(mRatioWidth*mToShortBoardRate);
+//                Log.d(TAG,"onMeasure() newWidth: "+newWidth+" newHeight: "+newHeight);
+//                setMeasuredDimension(newHeight,newWidth);
+//            }
+//            else{
+//                //為了不讓相機影像變行成螢幕寬高比例。
+//                setMeasuredDimension(mRatioWidth, mRatioHeight);
+//            }
+//        }
     }
 }
 

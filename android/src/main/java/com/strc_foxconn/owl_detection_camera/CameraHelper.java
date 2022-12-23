@@ -2,6 +2,9 @@ package com.strc_foxconn.owl_detection_camera;
 
 import static android.content.Context.CAMERA_SERVICE;
 
+import static com.strc_foxconn.owl_detection_camera.CameraView.sRealScreenHeight;
+import static com.strc_foxconn.owl_detection_camera.CameraView.sRealScreenWidth;
+
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.res.Configuration;
@@ -390,12 +393,15 @@ public class CameraHelper
 
         Matrix matrix = new Matrix();
         RectF viewRect = new RectF(0, 0, mPreviewSize.getWidth(),  mPreviewSize.getHeight());
-        float centerX = viewRect.centerX();
-        float centerY = viewRect.centerY();
+        float centerX;
+        float centerY;
         if (Surface.ROTATION_90 == rotation || Surface.ROTATION_270 == rotation)
         {
-            float scaleY = (float) mPreviewSize.getWidth() / mPreviewSize.getHeight();
-            float scaleX = (float)  mPreviewSize.getHeight() / mPreviewSize.getWidth();
+            viewRect = new RectF(0, 0,sRealScreenWidth ,  sRealScreenHeight);
+            centerX = viewRect.centerX();
+            centerY = viewRect.centerY();
+            float scaleY = (float) mPreviewSize.getWidth() / sRealScreenHeight;
+            float scaleX = (float)  mPreviewSize.getHeight() / sRealScreenWidth;
             Log.d(TAG,"configureTextureViewTransform s scaleX: "+scaleX+" scaleY: "+scaleY);
             mScaleX = scaleX;
             mScaleY = scaleY;
@@ -406,7 +412,7 @@ public class CameraHelper
             Log.d(TAG,"configureTextureViewTransform 90");
         }else if (Surface.ROTATION_180 == rotation) {
             Log.d(TAG,"configureTextureViewTransform 180");
-            viewRect = new RectF(0, 0, mPreviewSize.getHeight(),  mPreviewSize.getWidth());
+            viewRect = new RectF(0, 0, sRealScreenWidth,  sRealScreenHeight);
             centerX = viewRect.centerX();
             centerY = viewRect.centerY();
             mRotate = 180;
@@ -798,8 +804,8 @@ public class CameraHelper
 //        float screenRate = (float)MainActivity.sRealWindowHeight/(float)MainActivity.sRealWindowWidth;
 //        Log.d(TAG,"getBestSize() CameraHelper screenRate: "+screenRate);
 
-        int screenSmallBorder = Math.min(CameraView.sRealScreenWidth, CameraView.sRealScreenHeight);
-        int screenBigBorder = Math.max(CameraView.sRealScreenWidth, CameraView.sRealScreenHeight)+CameraView.sRealStatusBarHeight;
+        int screenSmallBorder = Math.min(sRealScreenWidth, sRealScreenHeight);
+        int screenBigBorder = Math.max(sRealScreenWidth, sRealScreenHeight)+CameraView.sRealStatusBarHeight;
 
         for (Size size : sizeList)
         {
@@ -807,7 +813,7 @@ public class CameraHelper
             float sizeBigBorder = Math.max(size.getWidth(), size.getHeight());
             float sizeSmallBorder = Math.min(size.getWidth(), size.getHeight());
 //            float sizeRate = sizeBigBorder/sizeSmallBorder;//按比例找最接近的
-            Log.d(TAG,"getBestSize() CameraView.sRealWindowWidth: "+CameraView.sRealScreenWidth +" MainActivity.sRealWindowHeight: "+CameraView.sRealScreenHeight);
+            Log.d(TAG,"getBestSize() CameraView.sRealWindowWidth: "+ sRealScreenWidth +" MainActivity.sRealWindowHeight: "+ sRealScreenHeight);
 //            Log.d(TAG,"getBestSize() sizeSmallBorder: "+sizeSmallBorder+" sizeBigBorder: "+sizeBigBorder);
             float newWidth = Math.abs(screenSmallBorder - sizeSmallBorder);
             float newHeight = Math.abs(screenBigBorder - sizeBigBorder);
