@@ -43,7 +43,7 @@ class CameraController: NSObject,AVCaptureMetadataOutputObjectsDelegate
     var mQRcodeResult:((String)->Void)?;
     var mFaceDetectionHintCallback:((Int)->Void)?;
     
-    var mCameraLensPostion:Int = Define.REAR_CAMERA;
+    var mCameraLensPostion:Int = Define.FRONT_CAMERA;
     
     var mDetectionMode:Int = Define.BLEND_MODE;
     
@@ -98,7 +98,13 @@ extension CameraController : AVCapturePhotoCaptureDelegate,AVCaptureVideoDataOut
     func setCameraLens(aLens:Int)
     {
         self.mCameraLensPostion = aLens;
-        print("setCameraLens() aLens: \(aLens)");
+        
+        do {
+            try self.switchCameras();
+        }
+        catch {
+            print("setCameraLens() catch error: \(error)")
+        }
     }
     
     func setDetectionMode(_ aMode:Int)
@@ -460,15 +466,22 @@ extension CameraController : AVCapturePhotoCaptureDelegate,AVCaptureVideoDataOut
     
     func switchCameras() throws
     {
-        guard let currentCameraPosition = currentCameraPosition, let captureSession = self.captureSession, captureSession.isRunning else { throw CameraControllerError.captureSessionIsMissing }
+        guard let currentCameraPositions = currentCameraPosition, let captureSession = self.captureSession, captureSession.isRunning
+        else
+        {
+            throw CameraControllerError.captureSessionIsMissing
+        }
         
         captureSession.beginConfiguration()
         
         func switchToFrontCamera() throws
         {
             //同時滿足rearCameraInput不是nil 且 裝置包含後鏡頭 且 frontCamera不是nil
-            guard let rearCameraInput = self.rearCameraInput, captureSession.inputs.contains(rearCameraInput),
-                  let frontCamera = self.frontCamera else { throw CameraControllerError.invalidOperation }
+            guard let rearCameraInput = self.rearCameraInput, captureSession.inputs.contains(rearCameraInput),let frontCamera = self.frontCamera
+            else
+            {
+                throw CameraControllerError.invalidOperation
+            }
             
             //取得前鏡頭輸入
             self.frontCameraInput = try AVCaptureDeviceInput(device: frontCamera)
@@ -476,7 +489,7 @@ extension CameraController : AVCapturePhotoCaptureDelegate,AVCaptureVideoDataOut
             //從目前的Session中移除後鏡頭的input
             captureSession.removeInput(rearCameraInput)
             
-            //判斷是否可以加入前鏡頭Input
+            //判斷是否可以加入前/Users/josh/Documents/Ios專案/AppleFaceDetection-master/VisionDetection/ViewController.swift鏡頭Input
             if captureSession.canAddInput(self.frontCameraInput!)
             {
                 //加入前鏡頭input
@@ -486,13 +499,18 @@ extension CameraController : AVCapturePhotoCaptureDelegate,AVCaptureVideoDataOut
             else {
                 throw CameraControllerError.invalidOperation
             }
+            
+            captureSession.commitConfiguration()
         }
         
         func switchToRearCamera() throws
         {
             //同時滿足frontCameraInput不是nil 且 裝置包含前鏡頭 且 rearCamera不是nil
-            guard let frontCameraInput = self.frontCameraInput, captureSession.inputs.contains(frontCameraInput),
-                  let rearCamera = self.rearCamera else { throw CameraControllerError.invalidOperation }
+            guard let frontCameraInput = self.frontCameraInput, captureSession.inputs.contains(frontCameraInput),let rearCamera = self.rearCamera
+            else
+            {
+                throw CameraControllerError.invalidOperation
+            }
             
             //取得後鏡頭輸入
             self.rearCameraInput = try AVCaptureDeviceInput(device: rearCamera)
@@ -512,9 +530,11 @@ extension CameraController : AVCapturePhotoCaptureDelegate,AVCaptureVideoDataOut
             {
                 throw CameraControllerError.invalidOperation
             }
+            
+            captureSession.commitConfiguration()
         }
         
-        switch currentCameraPosition
+        switch currentCameraPositions
         {
             case CameraPosition.front:
                 try switchToRearCamera()
@@ -522,8 +542,6 @@ extension CameraController : AVCapturePhotoCaptureDelegate,AVCaptureVideoDataOut
             case CameraPosition.rear:
                 try switchToFrontCamera()
         }
-        
-        captureSession.commitConfiguration()
     }
     
     func returnedOrientation() -> AVCaptureVideoOrientation
@@ -613,15 +631,15 @@ extension CameraController : AVCapturePhotoCaptureDelegate,AVCaptureVideoDataOut
             //deviceType:選擇要使用的相機類型ex:一般廣角、廣角、超廣角.etc.
             //mediaType: 選擇多媒體類型ex:視頻、音頻.etc.
             //position:  選擇鏡頭ex:前鏡頭、後鏡頭.
-            let session = AVCaptureDevice.DiscoverySession(deviceTypes: [AVCaptureDevice.DeviceType.builtInWideAngleCamera], mediaType: AVMediaType.video, position: .front)
+            let session = AVCaptureDevice.DiscoverySession(deviceTypes: [AVCaptureDevice.DeviceType.builtInWideAngleCamera], mediaType: AVMediaType.video, position: .unspecified)
             let cameras = session.devices.compactMap { $0 }
             
             guard !cameras.isEmpty else { throw CameraControllerError.noCamerasAvailable }
             
             for camera in cameras
             {
-                if(mCameraLensPostion == Define.FRONT_CAMERA)
-                {
+//                if(mCameraLensPostion == Define.FRONT_CAMERA)
+//                {
                     if camera.position == .front
                     {
                         
@@ -630,8 +648,8 @@ extension CameraController : AVCapturePhotoCaptureDelegate,AVCaptureVideoDataOut
                         camera.unlockForConfiguration()
                         camera.addObserver(self, forKeyPath: "adjustingFocus", options: .new, context: nil)
                     }
-                }
-                else{
+//                }
+//                else{
                     if camera.position == .back
                     {
                         self.rearCamera = camera
@@ -640,13 +658,17 @@ extension CameraController : AVCapturePhotoCaptureDelegate,AVCaptureVideoDataOut
                         camera.unlockForConfiguration()
                         camera.addObserver(self, forKeyPath: "adjustingFocus", options: .new, context: nil)
                     }
-                }
+//                }
             }
         }
         
         func configureDeviceInputs() throws
         {
-            guard let captureSession = self.captureSession else { throw CameraControllerError.captureSessionIsMissing }
+            guard let captureSession = self.captureSession
+            else
+            {
+                throw CameraControllerError.captureSessionIsMissing
+            }
             
             //設定攝影機解析度
             if captureSession.canSetSessionPreset(.photo)
@@ -660,7 +682,22 @@ extension CameraController : AVCapturePhotoCaptureDelegate,AVCaptureVideoDataOut
                 captureSession.sessionPreset = AVCaptureSession.Preset.photo;
             }
             
-            if let rearCamera = self.rearCamera
+            if let frontCamera = self.frontCamera
+            {
+               self.frontCameraInput = try AVCaptureDeviceInput(device: frontCamera)
+               
+               if captureSession.canAddInput(self.frontCameraInput!)
+               {
+                   captureSession.addInput(self.frontCameraInput!)
+               }
+               else
+               {
+                   throw CameraControllerError.inputsAreInvalid
+               }
+               
+               self.currentCameraPosition = .front
+            }
+            else if let rearCamera = self.rearCamera
             {
                 self.rearCameraInput = try AVCaptureDeviceInput(device: rearCamera)
                 
@@ -670,22 +707,6 @@ extension CameraController : AVCapturePhotoCaptureDelegate,AVCaptureVideoDataOut
                 }
                 
                 self.currentCameraPosition = .rear
-            }
-            
-            else if let frontCamera = self.frontCamera
-            {
-                self.frontCameraInput = try AVCaptureDeviceInput(device: frontCamera)
-                
-                if captureSession.canAddInput(self.frontCameraInput!)
-                {
-                    captureSession.addInput(self.frontCameraInput!)
-                }
-                else
-                {
-                    throw CameraControllerError.inputsAreInvalid
-                }
-                
-                self.currentCameraPosition = .front
             }
             else
             {

@@ -24,6 +24,8 @@ class OwlCameraDefine
 
   static const String METHOD_DISABLE_HINT="disable_hint";
 
+  static const String METHOD_SWITCH_CAMERA="switch_camera";
+
   static const String METHOD_ID_WRITHE_SETTING_PERMISSION ="write_setting_permission";
 
   //invoke meant from native to flutter.

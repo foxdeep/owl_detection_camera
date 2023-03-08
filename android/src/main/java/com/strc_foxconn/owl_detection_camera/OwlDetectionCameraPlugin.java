@@ -154,6 +154,11 @@ public class OwlDetectionCameraPlugin implements FlutterPlugin, MethodCallHandle
         }
       }
     }
+    else if(call.method.equals(mMethodChannels.METHOD_SWITCH_CAMERA))
+    {
+       if(mOnMethodCallback!=null)
+         mOnMethodCallback.onSwitchCamera();
+    }
     else if(call.method.equals(mMethodChannels.METHOD_ID_WRITHE_SETTING_PERMISSION))
     {
        boolean hasPermission = Utility.checkSystemWriteSettings(mActivity);

@@ -108,6 +108,15 @@ public class SwiftOwlDetectionCameraPlugin: NSObject, FlutterPlugin
             
             methodCall.onDisableHint(disableHint);
         }
+        else if(call.method == Define.METHOD_SWITCH_CAMERA)
+        {
+            guard let methodCall = SwiftOwlDetectionCameraPlugin.mMethodCallback else
+            {
+                return;
+            }
+                
+            methodCall.onSwitchCamera();
+        }
         else if(call.method == Define.METHOD_ID_FACE_DETECT_HINT)
         {
             guard let args = call.arguments as? NSArray else

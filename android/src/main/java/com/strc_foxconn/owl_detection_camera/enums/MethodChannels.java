@@ -17,12 +17,11 @@ public enum MethodChannels
     public final String METHOD_ID_WRITHE_SETTING_PERMISSION ="write_setting_permission";
     public final String METHOD_SET_DETECTION_MODE="set_detection_mode";
     public final String METHOD_DISABLE_HINT="disable_hint";
+    public final String METHOD_SWITCH_CAMERA="switch_camera";
 
     //invoke meant from native to flutter.
     public final String INVOKE_ID_IMAGE_PATH_NAME = "image_path_name_callback";
     public final String INVOKE_ID_FACE_RECTANGLE = "face_rectangle_callback";
     public final String INVOKE_ID_QRCODE_TEXT = "qrcode_text_callback";
     public final String INVOKE_ID_WRITE_SETTING_PERMISSION = "write_setting_permission_callback";
-
-
 }

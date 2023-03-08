@@ -38,7 +38,8 @@ class Define
     
     static let METHOD_DISABLE_HINT="disable_hint";
     
-    
+    static let METHOD_SWITCH_CAMERA="switch_camera";
+
     //invoke meant from native to flutter.
     static let INVOKE_ID_IMAGE_PATH_NAME = "image_path_name_callback";
     static let INVOKE_ID_FACE_RECTANGLE = "face_rectangle_callback";

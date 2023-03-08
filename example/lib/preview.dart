@@ -267,6 +267,16 @@ class _PreviewState  extends State<Preview>
                                   OwlDetectionCamera.setDetectionMode(OwlCameraDefine.BLEND_MODE);
                                 }),
                           ),
+                          Expanded(
+                            flex: 1,
+                            child: ElevatedButton(
+                                child:
+                                Text("Switch Camera",style: TextStyle(fontSize: 10)),
+                                onPressed: ()
+                                {
+                                  OwlDetectionCamera.switchCamera();
+                                }),
+                          ),
                         ],
                       ),
                     ],

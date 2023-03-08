@@ -5,6 +5,7 @@ import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.graphics.Matrix;
 import android.graphics.RectF;
+import android.hardware.camera2.CameraCharacteristics;
 import android.hardware.camera2.params.Face;
 import android.os.AsyncTask;
 import android.os.Build;
@@ -181,6 +182,12 @@ public class CameraView implements PlatformView,Handler.Callback, FaceDetectList
                     public void onDisableHint(boolean aValue)
                     {
                         mIsDisableHint = aValue;
+                    }
+
+                    @Override
+                    public void onSwitchCamera()
+                    {
+                        mCameraHelper.switchCamera();
                     }
 
                     @Override

@@ -70,6 +70,11 @@ class OwlDetectionCamera extends StatefulWidget
     await _channel.invokeMethod(OwlCameraDefine.METHOD_DISABLE_HINT, [aValue]);
   }
 
+  static void switchCamera() async
+  {
+    await _channel.invokeMethod(OwlCameraDefine.METHOD_SWITCH_CAMERA, [""]);
+  }
+
   ///only Android
   static void writeSettingPermission() async
   {

@@ -313,11 +313,11 @@ public class CameraHelper
             {
                 int facing = cameraCharacteristics.get(CameraCharacteristics.LENS_FACING);
 
-                if(Defines.sVersion == Defines.VERSION.NORMAL)
-                {
-                    if (facing == CameraCharacteristics.LENS_FACING_BACK)
-                        continue;
-                }
+//                if(Defines.sVersion == Defines.VERSION.NORMAL)
+//                {
+//                    if (facing == CameraCharacteristics.LENS_FACING_BACK)
+//                        continue;
+//                }
 
                 if (facing == mCameraFacing) {
                     mCameraId = cameraId;
@@ -783,6 +783,19 @@ public class CameraHelper
         mDetectMode = aDetectMode;
     }
 
+    public void switchCamera()
+    {
+        if(mCameraFacing == CameraCharacteristics.LENS_FACING_FRONT){
+            mCameraFacing = CameraCharacteristics.LENS_FACING_BACK;
+        }
+        else{
+            mCameraFacing = CameraCharacteristics.LENS_FACING_FRONT;
+        }
+
+        stop();
+        init();
+    }
+
     /**
      * 根據提供的參數值返回與指定寬高相等或是最接近的尺寸
      *
@@ -978,7 +991,7 @@ public class CameraHelper
                                     if (faces != null && !faces.isEmpty())
                                     {
                                         RectF bounds = new RectF(faces.get(0).getBoundingBox().left * BITMAP_SCALE_SIZE, faces.get(0).getBoundingBox().top * BITMAP_SCALE_SIZE, faces.get(0).getBoundingBox().right * BITMAP_SCALE_SIZE, faces.get(0).getBoundingBox().bottom * BITMAP_SCALE_SIZE);
-
+                                        Log.d(TAG,"faces length: "+faces.size()+" bounds: "+bounds);
                                         mFacesRect.add(bounds);
                                         mActivity.runOnUiThread(new Runnable()
                                         {

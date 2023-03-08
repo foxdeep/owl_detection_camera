@@ -17,5 +17,5 @@ public interface OnMethodCallback
     void onSetFaceDetectionHintText(String aFitCenter, String aHitForward, String aHintBackward);
     void onSetDetectionMode(int aValue);
     void onDisableHint(boolean aValue);
-
+    void onSwitchCamera();
 }

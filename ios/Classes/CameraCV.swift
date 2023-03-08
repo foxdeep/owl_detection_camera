@@ -48,13 +48,11 @@ extension CameraCV
         // 取得螢幕的尺寸
         mFullScreenSize = UIScreen.main.bounds.size;
         print("mFullScreenSize width: \(mFullScreenSize?.width) height: \(mFullScreenSize?.height)");
-        cameraController.setCameraLens(aLens: mCameraLensPosition)
         configureCameraController();
         self.cameraController.setFaceResultCallback(getFacePhoto); //人臉照片
         self.cameraController.setFaceVisionCallback(drawFaceboundingBox); //畫人臉框
         self.cameraController.setQRcodeCallback(qrcodeCallback);//QRcode
         self.cameraController.setFaceDetectionHintCallback(showFaceDetectionHint);
-        
         self.cameraController.setFullScreenSize(aSize: self.mFullScreenSize!);
         
         deleteDirFile();
@@ -75,11 +73,22 @@ extension CameraCV
             { (aValue:Bool)->() in //disable mode
                 self.setDisableHint(aValue);
             },
-            
             {(aCenter:String,aForward:String,aBackward:String) -> () in
                 self.mHintCenter = aCenter;
                 self.mHintForward = aForward;
                 self.mHintBackward = aBackward;
+            },
+            { ()->() in
+               
+                if(self.mCameraLensPosition == Define.FRONT_CAMERA)
+                {
+                    self.mCameraLensPosition = Define.REAR_CAMERA;
+                }
+                else{
+                    self.mCameraLensPosition = Define.FRONT_CAMERA;
+                }
+                                
+                self.cameraController.setCameraLens(aLens: self.mCameraLensPosition);
             }
         ));
     }
