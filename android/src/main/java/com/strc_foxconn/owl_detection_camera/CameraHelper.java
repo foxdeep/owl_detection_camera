@@ -337,22 +337,23 @@ public class CameraHelper
         Size[] savePicSize = configurationMap.getOutputSizes(ImageFormat.JPEG);     //保存照片尺寸
         Size[] previewSize = configurationMap.getOutputSizes(SurfaceTexture.class); //預覽尺寸
 
-        boolean exchange = exchangeWidthAndHeight(mDisplayRotation, mCameraSensorOrientation);
+//        boolean exchange = exchangeWidthAndHeight(mDisplayRotation, mCameraSensorOrientation);
 
         mSavePicSize = getBestSize(
-                exchange ? mSavePicSize.getHeight() : mSavePicSize.getWidth(),
-                exchange ? mSavePicSize.getWidth() : mSavePicSize.getHeight(),
-                exchange ? mSavePicSize.getHeight() : mSavePicSize.getWidth(),
-                exchange ? mSavePicSize.getWidth() : mSavePicSize.getHeight(),
+                mSavePicSize.getHeight(),
+                mSavePicSize.getWidth(),
+                mSavePicSize.getHeight() ,
+                mSavePicSize.getWidth(),
                 Arrays.asList(savePicSize));
         sResolution = sResolution + "Save size: "+mSavePicSize+"\n";
 
         mPreviewSize = getBestSize(
-                exchange ? mPreviewSize.getHeight() : mPreviewSize.getWidth(),
-                exchange ? mPreviewSize.getWidth() : mPreviewSize.getHeight(),
-                exchange ? mTextureView.getHeight() : mTextureView.getWidth(),
-                exchange ? mTextureView.getWidth() : mTextureView.getHeight(),
+                mPreviewSize.getHeight(),
+                mPreviewSize.getWidth(),
+                mTextureView.getHeight(),
+                mTextureView.getWidth(),
                 Arrays.asList(previewSize));
+
         sResolution = sResolution + "Preview size: "+mSavePicSize+"\n";
 
         Log.d(TAG,"initCameraInfo() mPreviewSize Width: "+mPreviewSize.getWidth()+""+" Height: " +mPreviewSize.getHeight());
@@ -770,6 +771,7 @@ public class CameraHelper
         else
         {
             mIsCapturing = Defines.CAMERA_ACTION.NONE;
+//            mIsDetectFaceFromMLKit = true;
         }
     }
 
@@ -823,6 +825,7 @@ public class CameraHelper
         for (Size size : sizeList)
         {
             sResolution = sResolution + size.getWidth()+"x"+size.getHeight()+"\n";
+
             float sizeBigBorder = Math.max(size.getWidth(), size.getHeight());
             float sizeSmallBorder = Math.min(size.getWidth(), size.getHeight());
 //            float sizeRate = sizeBigBorder/sizeSmallBorder;//按比例找最接近的
@@ -1111,7 +1114,7 @@ public class CameraHelper
                             Bitmap textureScaleBitmap = Bitmap.createScaledBitmap(originalBitmap, (int) originalBitmap.getWidth() / BITMAP_SCALE_SIZE, (int) originalBitmap.getHeight() / BITMAP_SCALE_SIZE, false);
                             mIsCapturing = Defines.CAMERA_ACTION.IS_CAPTURING_FROM_QRCODE;
                             decode(textureScaleBitmap);
-                            mIsDetectFaceFromMLKit = true;
+//                            mIsDetectFaceFromMLKit = true;
                         }
                     }).start();
                 }

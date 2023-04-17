@@ -1,3 +1,7 @@
+## 0.2.3
+
+- Improvement.
+
 ## 0.2.2
 
 - Switch camera between front and rear.
