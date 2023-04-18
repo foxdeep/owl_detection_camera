@@ -11,12 +11,14 @@
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
     <uses-permission android:name="android.permission.CAMERA" />
-    <uses-feature android:name="android.hardware.camera2" />
     <uses-feature android:name="android.hardware.camera" />
     <uses-feature android:name="android.hardware.camera.autofocus" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.VIBRATE" />
     <uses-permission android:name="android.permission.READ_PHONE_STATE"/>
+
+<!--    <uses-feature android:name="android.hardware.camera2" />-->
+
 <!--    <meta-data-->
 <!--        android:name="com.google.mlkit.vision.DEPENDENCIES"-->
 <!--        android:value="face" />-->
