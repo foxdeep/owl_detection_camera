@@ -339,20 +339,10 @@ public class CameraHelper
 
 //        boolean exchange = exchangeWidthAndHeight(mDisplayRotation, mCameraSensorOrientation);
 
-        mSavePicSize = getBestSize(
-                mSavePicSize.getHeight(),
-                mSavePicSize.getWidth(),
-                mSavePicSize.getHeight() ,
-                mSavePicSize.getWidth(),
-                Arrays.asList(savePicSize));
+        mSavePicSize = getBestSize(Arrays.asList(savePicSize));
         sResolution = sResolution + "Save size: "+mSavePicSize+"\n";
 
-        mPreviewSize = getBestSize(
-                mPreviewSize.getHeight(),
-                mPreviewSize.getWidth(),
-                mTextureView.getHeight(),
-                mTextureView.getWidth(),
-                Arrays.asList(previewSize));
+        mPreviewSize = getBestSize(Arrays.asList(previewSize));
 
         sResolution = sResolution + "Preview size: "+mSavePicSize+"\n";
 
@@ -771,7 +761,7 @@ public class CameraHelper
         else
         {
             mIsCapturing = Defines.CAMERA_ACTION.NONE;
-//            mIsDetectFaceFromMLKit = true;
+            mIsDetectFaceFromMLKit = true;
         }
     }
 
@@ -801,14 +791,10 @@ public class CameraHelper
     /**
      * 根據提供的參數值返回與指定寬高相等或是最接近的尺寸
      *
-     * @param targetWidth  目標寬度
-     * @param targetHeight 目標高度
-     * @param maxWidth     最大寬度(即TextureView寬度)
-     * @param maxHeight    最大高度(即TextureView的高度)
-     * @param sizeList     支持的Size列表
+     * @param sizeList 支持的Size列表
      * @return 返回與指定寬高相等或最接近的尺寸
      */
-    private Size getBestSize(int targetWidth, int targetHeight, int maxWidth, int maxHeight, List<Size> sizeList)
+    private Size getBestSize(List<Size> sizeList)
     {
 //        float rate = 0.5f; //按比例找最接近的
         float rate = 500.0f;//長寬差值
@@ -824,18 +810,16 @@ public class CameraHelper
 
         for (Size size : sizeList)
         {
-            sResolution = sResolution + size.getWidth()+"x"+size.getHeight()+"\n";
+            sResolution = sResolution.concat(size.getWidth()+"x"+size.getHeight()+"\n");
 
-            float sizeBigBorder = Math.max(size.getWidth(), size.getHeight());
-            float sizeSmallBorder = Math.min(size.getWidth(), size.getHeight());
+            float systemSizeBigBorder = Math.max(size.getWidth(), size.getHeight());
+            float systemSizeSmallBorder = Math.min(size.getWidth(), size.getHeight());
 //            float sizeRate = sizeBigBorder/sizeSmallBorder;//按比例找最接近的
             Log.d(TAG,"getBestSize() CameraView.sRealWindowWidth: "+ sRealScreenWidth +" MainActivity.sRealWindowHeight: "+ sRealScreenHeight);
-//            Log.d(TAG,"getBestSize() sizeSmallBorder: "+sizeSmallBorder+" sizeBigBorder: "+sizeBigBorder);
-            float newWidth = Math.abs(screenSmallBorder - sizeSmallBorder);
-            float newHeight = Math.abs(screenBigBorder - sizeBigBorder);
+            float newWidth = Math.abs(screenSmallBorder - systemSizeSmallBorder);
+            float newHeight = Math.abs(screenBigBorder - systemSizeBigBorder);
             float diff = newWidth+newHeight;
-//            Log.d(TAG,"getBestSize() diff: "+diff);
-            if(diff < rate && (sizeSmallBorder >= screenSmallBorder) && sizeBigBorder < 2500 )
+            if(diff < rate && (systemSizeSmallBorder >= screenSmallBorder) && systemSizeBigBorder < 2500 )
             {
                 rate = diff;
                 pickerSize = size;
@@ -984,8 +968,13 @@ public class CameraHelper
                             if(mImgRotateForMLKit==-1)
                                 mImgRotateForMLKit = 0;
 
+                            int width = textureScaleBitmap.getWidth();
+                            int height = textureScaleBitmap.getHeight();
+                            byte[] yuv420 = Defines.bmp2Yuv(textureScaleBitmap);
                             //混合模式必須以偵測人臉為主來切會QRCode/FaceDetection mode.
-                            InputImage inputImage = InputImage.fromBitmap(textureScaleBitmap, 0);
+
+                            InputImage inputImage = InputImage.fromByteArray(yuv420,width,height,0,InputImage.IMAGE_FORMAT_YV12);
+//                            InputImage inputImage = InputImage.fromBitmap(textureScaleBitmap, 0);
                             mDetector.process(inputImage).addOnSuccessListener(new OnSuccessListener<List<com.google.mlkit.vision.face.Face>>()
                             {
                                 @Override
@@ -1076,15 +1065,17 @@ public class CameraHelper
 
                                             mIsDetectFaceFromMLKit = true;
                                         }
-                                    }else
+                                    }
+                                    else
                                     {
                                         if(mDetectMode == OnMethodCallback.BLEND_MODE)
                                         {
                                             mIsCapturing = Defines.CAMERA_ACTION.IS_CAPTURING_FROM_QRCODE;
                                             decode(textureScaleBitmap);
                                         }
-
-                                        mIsDetectFaceFromMLKit = true;
+                                        else{
+                                            mIsDetectFaceFromMLKit = true;
+                                        }
                                     }
                                 }
                             }).addOnFailureListener(new OnFailureListener()
@@ -1096,7 +1087,10 @@ public class CameraHelper
                                             mIsCapturing = Defines.CAMERA_ACTION.IS_CAPTURING_FROM_QRCODE;
                                             decode(textureScaleBitmap);
                                         }
-                                        mIsDetectFaceFromMLKit = true;
+                                        else{
+                                            mIsDetectFaceFromMLKit = true;
+                                        }
+
                                     }
                             });
                         }
